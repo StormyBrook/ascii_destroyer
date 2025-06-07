@@ -144,7 +144,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>ASCII Art Generator & Game of Life</title>
+        <title>Conway's Game of Life</title>
         <meta name="description" content="Generate ASCII art and watch it evolve with Conway's Game of Life" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

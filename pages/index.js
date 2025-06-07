@@ -18,6 +18,7 @@ export default function Home() {
   const [gameOfLifeGrid, setGameOfLifeGrid] = useState(null)
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
+  const [selectedFont, setSelectedFont] = useState('Rectangles');
 
   const getRandomNeonColor = () => {
     return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
@@ -35,7 +36,7 @@ export default function Home() {
       return
     }
     try {
-      figlet.text(inputText, { font: 'Rectangles' }, (err, data) => {
+      figlet.text(inputText, { font: selectedFont }, (err, data) => {
         if (err) {
           console.error('Figlet error:', err)
           setAsciiArt('Error generating ASCII art.')
@@ -53,6 +54,29 @@ export default function Home() {
     }
   }
 
+  const handleFontChange = (fontName) => {
+    if (isSimulating) return;
+    setSelectedFont(fontName);
+    // We need to ensure generateAsciiArt uses the *new* font.
+    // Calling it directly might use the stale 'selectedFont' value from the closure.
+    // A useEffect is safer, or passing the fontName directly.
+    // For now, let's try passing it directly to a modified generateAsciiArt,
+    // or rely on a useEffect to re-trigger.
+    // For simplicity, this implementation will rely on generateAsciiArt picking up the new state.
+    // This is a common React pattern, but sometimes needs a useEffect for guaranteed immediate re-render with new prop.
+    // However, since generateAsciiArt is called after setSelectedFont, the re-render triggered by setSelectedFont
+    // should make the new selectedFont value available to generateAsciiArt in the next render cycle.
+    // The immediate call to generateAsciiArt will be enqueued by React after the state update.
+
+    // To ensure generateAsciiArt runs *after* selectedFont state is updated and component potentially re-rendered:
+    // Option 1: Pass fontName directly (requires changing generateAsciiArt signature)
+    // generateAsciiArt(inputText, fontName);
+    // Option 2: Use useEffect (more React idiomatic for reacting to state changes)
+    // This will be handled by a new useEffect below.
+    // For now, just setting state is enough, and a useEffect will pick up the change.
+  };
+
+
   // This function is now primarily for converting the GoL grid to a string for display
   // if we needed to display it as a single string again, or for other logic.
   // The main display is handled by mapping gameOfLifeGrid to JSX.
@@ -68,7 +92,7 @@ export default function Home() {
         setIsSimulating(false)
         return null;
       }
-      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor);
+      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
       // setAsciiArt(gridToAsciiDisplay(newGrid)); // Update asciiArt state if needed for other purposes
 
       if (isStable(prevGrid, newGrid) || isEmpty(newGrid)) {
@@ -147,6 +171,14 @@ export default function Home() {
           />
           <button onClick={generateAsciiArt} className={styles.generateButton} disabled={isSimulating}>
             Generate
+          </button>
+        </div>
+        <div className={styles.fontSelection}>
+          <button onClick={() => handleFontChange('Standard')} disabled={isSimulating || selectedFont === 'Standard'}>
+            Use Standard Font
+          </button>
+          <button onClick={() => handleFontChange('Rectangles')} disabled={isSimulating || selectedFont === 'Rectangles'}>
+            Use Rectangles Font
           </button>
         </div>
         {/* Render based on gameOfLifeGrid for dynamic colors */}

@@ -1,8 +1,8 @@
 import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 import figlet from 'figlet'
-import styles from '@/styles/Home.module.css'
-import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty } from '@/lib/gameOfLife'
+import styles from '../styles/Home.module.css'
+import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty } from '../lib/gameOfLife'
 
 const SIMULATION_SPEED_MS = 200; // ms per generation
 const LIVE_CELL_CHAR = '#';

@@ -29,12 +29,27 @@ export default function Home() {
   }
 
   const generateAsciiArt = async () => {
-    if (isSimulating) return;
+    // New logic to stop ongoing simulation
+    if (isSimulating) {
+      if (simulationIntervalId.current) {
+        clearInterval(simulationIntervalId.current);
+        simulationIntervalId.current = null;
+      }
+      setIsSimulating(false);
+      setStableGenerationCount(0); // Reset the counter
+    }
+
+    // Existing logic for generating new art
     if (!inputText) {
       setAsciiArt('')
       setGameOfLifeGrid(null)
+      setStableGenerationCount(0); // Also reset stableGenerationCount here if clearing the art
       return
     }
+
+    // Reset stableGenerationCount here too, as we are starting a new Figlet generation
+    setStableGenerationCount(0);
+
     try {
       figlet.text(inputText, { font: 'Standard' }, (err, data) => {
         if (err) {
@@ -43,7 +58,7 @@ export default function Home() {
           setGameOfLifeGrid(null)
           return
         }
-        setStableGenerationCount(0); // Reset for new art
+        // setStableGenerationCount(0); // This was moved up
         setAsciiArt(data);
         // Initialize grid with the initial color for Game of Life
         setGameOfLifeGrid(initializeGridFromAscii(data, INITIAL_NEON_PURPLE));
@@ -142,9 +157,8 @@ export default function Home() {
             value={inputText}
             onChange={handleInputChange}
             placeholder="Enter text"
-            disabled={isSimulating}
           />
-          <button onClick={generateAsciiArt} className={styles.generateButton} disabled={isSimulating}>
+          <button onClick={generateAsciiArt} className={styles.generateButton}>
             Generate
           </button>
         </div>

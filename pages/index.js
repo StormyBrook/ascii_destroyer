@@ -42,10 +42,9 @@ export default function Home() {
           setGameOfLifeGrid(null)
           return
         }
-        const transformedData = data.replace(/\S/g, '#');
-        setAsciiArt(transformedData);
+        setAsciiArt(data);
         // Initialize grid with the initial color for Game of Life
-        setGameOfLifeGrid(initializeGridFromAscii(transformedData, INITIAL_NEON_PURPLE));
+        setGameOfLifeGrid(initializeGridFromAscii(data, INITIAL_NEON_PURPLE));
       })
     } catch (error) {
       console.error('Figlet processing error:', error)

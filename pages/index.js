@@ -8,7 +8,7 @@ const SIMULATION_SPEED_MS = 200; // ms per generation
 const DEAD_CELL_CHAR = ' ';
 const NEWBORN_CELL_CHAR = '#';
 
-const NEON_COLORS = ['#FF00FF', '#FFFF00', '#00FFFF']; // Magenta (pink), Yellow, Cyan (blue)
+const NEON_COLORS = ['#FFA500', '#FFFF00', '#00FFFF']; // Magenta (pink) changed to Orange, Yellow, Cyan (blue)
 const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
 
 
@@ -18,7 +18,7 @@ export default function Home() {
   const [gameOfLifeGrid, setGameOfLifeGrid] = useState(null)
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
-  const [selectedFont, setSelectedFont] = useState('Rectangles');
+  const [stableGenerationCount, setStableGenerationCount] = useState(0);
 
   const getRandomNeonColor = () => {
     return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
@@ -36,13 +36,14 @@ export default function Home() {
       return
     }
     try {
-      figlet.text(inputText, { font: selectedFont }, (err, data) => {
+      figlet.text(inputText, { font: 'Standard' }, (err, data) => {
         if (err) {
           console.error('Figlet error:', err)
           setAsciiArt('Error generating ASCII art.')
           setGameOfLifeGrid(null)
           return
         }
+        setStableGenerationCount(0); // Reset for new art
         setAsciiArt(data);
         // Initialize grid with the initial color for Game of Life
         setGameOfLifeGrid(initializeGridFromAscii(data, INITIAL_NEON_PURPLE));
@@ -54,32 +55,6 @@ export default function Home() {
     }
   }
 
-  const handleFontChange = (fontName) => {
-    if (isSimulating) return;
-    setSelectedFont(fontName);
-    // We need to ensure generateAsciiArt uses the *new* font.
-    // Calling it directly might use the stale 'selectedFont' value from the closure.
-    // A useEffect is safer, or passing the fontName directly.
-    // For now, let's try passing it directly to a modified generateAsciiArt,
-    // or rely on a useEffect to re-trigger.
-    // For simplicity, this implementation will rely on generateAsciiArt picking up the new state.
-    // This is a common React pattern, but sometimes needs a useEffect for guaranteed immediate re-render with new prop.
-    // However, since generateAsciiArt is called after setSelectedFont, the re-render triggered by setSelectedFont
-    // should make the new selectedFont value available to generateAsciiArt in the next render cycle.
-    // The immediate call to generateAsciiArt will be enqueued by React after the state update.
-
-    // To ensure generateAsciiArt runs *after* selectedFont state is updated and component potentially re-rendered:
-    // Option 1: Pass fontName directly (requires changing generateAsciiArt signature)
-    // generateAsciiArt(inputText, fontName);
-    // Option 2: Use useEffect (more React idiomatic for reacting to state changes)
-    // This will be handled by a new useEffect below.
-    // For now, just setting state is enough, and a useEffect will pick up the change.
-  };
-
-
-  // This function is now primarily for converting the GoL grid to a string for display
-  // if we needed to display it as a single string again, or for other logic.
-  // The main display is handled by mapping gameOfLifeGrid to JSX.
   const gridToAsciiDisplay = (grid) => {
     if (!grid || grid.length === 0) return '';
     return grid.map(row => row.map(cell => (cell ? cell.char : DEAD_CELL_CHAR)).join('')).join('\n');
@@ -93,22 +68,25 @@ export default function Home() {
         return null;
       }
       const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
-      // setAsciiArt(gridToAsciiDisplay(newGrid)); // Update asciiArt state if needed for other purposes
 
-      if (isStable(prevGrid, newGrid) || isEmpty(newGrid)) {
-        clearInterval(simulationIntervalId.current)
-        setIsSimulating(false)
-        // Update asciiArt to the final state from gameOfLifeGrid for consistency
-        setAsciiArt(gridToAsciiDisplay(newGrid));
-        return newGrid; // Keep the final state
+      let nextStableCount = 0;
+      if (isStable(prevGrid, newGrid)) {
+        // Access stableGenerationCount from the closure of the Home component,
+        // not from a potentially stale prevGrid or a new state value not yet applied.
+        nextStableCount = stableGenerationCount + 1;
       }
-      // Update asciiArt for continuous display during simulation if needed,
-      // but primary rendering is from gameOfLifeGrid.
-      // Forcing a re-render of the <pre> tag by updating asciiArt if it were used directly.
-      // However, since we map gameOfLifeGrid directly, this setAsciiArt call here for intermediate steps
-      // is mostly for if we had another component relying on the string state of asciiArt.
-      // For the <pre> tag using gameOfLifeGrid, this specific call is not strictly necessary for display update.
-      setAsciiArt(gridToAsciiDisplay(newGrid));
+      // This setStableGenerationCount will schedule an update.
+      // The `nextStableCount` used in the condition below is the one calculated in this step.
+      setStableGenerationCount(nextStableCount);
+
+      if (isEmpty(newGrid) || nextStableCount >= 10) {
+        clearInterval(simulationIntervalId.current);
+        setIsSimulating(false);
+        setAsciiArt(gridToAsciiDisplay(newGrid));
+        // gameOfLifeGrid will be updated by the return value
+      } else {
+        setAsciiArt(gridToAsciiDisplay(newGrid));
+      }
       return newGrid;
     });
   }
@@ -116,16 +94,14 @@ export default function Home() {
   const handleDestroyClick = () => {
     if (isSimulating || !asciiArt ) return; // Ensure asciiArt (original figlet output) exists
 
-    // Initialize grid for simulation using the currently displayed asciiArt (which should be the figlet output)
     const initialGrid = initializeGridFromAscii(asciiArt, INITIAL_NEON_PURPLE);
 
     if (isEmpty(initialGrid)) {
-        // If the initial figlet art was empty or all spaces
         setAsciiArt("Original pattern is empty. Nothing to simulate.");
         setGameOfLifeGrid(null);
         return;
     }
-
+    setStableGenerationCount(0); // Reset before starting simulation
     setGameOfLifeGrid(initialGrid);
     setIsSimulating(true);
     simulationIntervalId.current = setInterval(simulationStep, SIMULATION_SPEED_MS);
@@ -150,7 +126,6 @@ export default function Home() {
     }
   }, [asciiArt, gameOfLifeGrid, isSimulating]);
 
-
   return (
     <>
       <Head>
@@ -171,14 +146,6 @@ export default function Home() {
           />
           <button onClick={generateAsciiArt} className={styles.generateButton} disabled={isSimulating}>
             Generate
-          </button>
-        </div>
-        <div className={styles.fontSelection}>
-          <button onClick={() => handleFontChange('Standard')} disabled={isSimulating || selectedFont === 'Standard'}>
-            Use Standard Font
-          </button>
-          <button onClick={() => handleFontChange('Rectangles')} disabled={isSimulating || selectedFont === 'Rectangles'}>
-            Use Rectangles Font
           </button>
         </div>
         {/* Render based on gameOfLifeGrid for dynamic colors */}

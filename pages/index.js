@@ -9,7 +9,7 @@ const DEAD_CELL_CHAR = ' ';
 const NEWBORN_CELL_CHAR = '#';
 
 const NEON_COLORS = ['#FF00FF', '#FFFF00', '#00FFFF']; // Magenta (pink), Yellow, Cyan (blue)
-const INITIAL_NEON_PURPLE = '#DA70D6'; // Orchid, as a distinct purple
+const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
 
 
 export default function Home() {
@@ -35,16 +35,17 @@ export default function Home() {
       return
     }
     try {
-      figlet.text(inputText, { font: 'Doh' }, (err, data) => {
+      figlet.text(inputText, { font: 'Rectangles' }, (err, data) => {
         if (err) {
           console.error('Figlet error:', err)
           setAsciiArt('Error generating ASCII art.')
           setGameOfLifeGrid(null)
           return
         }
-        setAsciiArt(data) // Store the raw Figlet output
+        const transformedData = data.replace(/\S/g, '#');
+        setAsciiArt(transformedData);
         // Initialize grid with the initial color for Game of Life
-        setGameOfLifeGrid(initializeGridFromAscii(data, INITIAL_NEON_PURPLE));
+        setGameOfLifeGrid(initializeGridFromAscii(transformedData, INITIAL_NEON_PURPLE));
       })
     } catch (error) {
       console.error('Figlet processing error:', error)

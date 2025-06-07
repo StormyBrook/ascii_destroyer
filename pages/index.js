@@ -5,8 +5,9 @@ import styles from '../styles/Home.module.css'
 import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty } from '../lib/gameOfLife'
 
 const SIMULATION_SPEED_MS = 200; // ms per generation
-const LIVE_CELL_CHAR = '#';
+// const LIVE_CELL_CHAR = '#'; // Potentially obsolete, replaced by NEWBORN_CELL_CHAR for new cells
 const DEAD_CELL_CHAR = ' ';
+const NEWBORN_CELL_CHAR = '#';
 
 export default function Home() {
   const [inputText, setInputText] = useState('')
@@ -27,7 +28,7 @@ export default function Home() {
       return
     }
     try {
-      figlet.text(inputText, (err, data) => {
+      figlet.text(inputText, { font: 'Doh' }, (err, data) => {
         if (err) {
           console.error('Figlet error:', err)
           setAsciiArt('Error generating ASCII art.')
@@ -46,7 +47,7 @@ export default function Home() {
 
   const gridToAscii = (grid) => {
     if (!grid || grid.length === 0) return '';
-    return grid.map(row => row.map(cell => (cell === 1 ? LIVE_CELL_CHAR : DEAD_CELL_CHAR)).join('')).join('\n');
+    return grid.map(row => row.map(cell => (cell !== null ? cell : DEAD_CELL_CHAR)).join('')).join('\n');
   }
 
   const simulationStep = () => {
@@ -56,7 +57,7 @@ export default function Home() {
         setIsSimulating(false)
         return null;
       }
-      const newGrid = getNextGeneration(prevGrid);
+      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR);
       setAsciiArt(gridToAscii(newGrid));
 
       if (isStable(prevGrid, newGrid) || isEmpty(newGrid)) {

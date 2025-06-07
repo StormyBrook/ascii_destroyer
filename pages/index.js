@@ -2,14 +2,14 @@ import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 import figlet from 'figlet'
 import styles from '../styles/Home.module.css'
-import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty } from '../lib/gameOfLife'
+import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty, isPatternStable } from '../lib/gameOfLife'
 
 const SIMULATION_SPEED_MS = 200; // ms per generation
 const DEAD_CELL_CHAR = ' ';
 const NEWBORN_CELL_CHAR = '#';
 
-const NEON_COLORS = ['#FFA500', '#FFFF00', '#00FFFF']; // Magenta (pink) changed to Orange, Yellow, Cyan (blue)
 const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
+const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Orange changed to INITIAL_NEON_PURPLE, Yellow, Cyan (blue)
 
 
 export default function Home() {
@@ -70,7 +70,7 @@ export default function Home() {
       const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
 
       let nextStableCount = 0;
-      if (isStable(prevGrid, newGrid)) {
+      if (isPatternStable(prevGrid, newGrid)) { // Use isPatternStable here
         // Access stableGenerationCount from the closure of the Home component,
         // not from a potentially stale prevGrid or a new state value not yet applied.
         nextStableCount = stableGenerationCount + 1;

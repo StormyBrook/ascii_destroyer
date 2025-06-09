@@ -1,29 +1,28 @@
 .asciiArtContainer {
   margin-top: 2rem;
-  /* width: 100%; /* Let max-width and margin auto handle this */
-  max-width: 98vw;
-  overflow-x: auto; /* For content that might overflow due to scaling or fixed width */
+  margin-bottom: 2rem; /* Added for consistent spacing */
+  width: calc(100vw - 40px);
+  max-width: 1200px; /* Added a max-width for very large screens */
+  overflow-x: auto;
   margin-left: auto;
   margin-right: auto;
-  /* The <pre> tag inside will be block and take up available width or its own content width */
-  /* If the <pre> tag itself needs centering within this container, text-align: center can be used here,
-     but then the <pre> tag needs display: inline-block or text-align: left to reset for its content.
-     However, the transform-origin: top left on the pre tag might make this complex.
-     Current setup with margin auto on container is for container centering.
-     The pre tag will be left aligned within this container.
-  */
+  padding: 10px; /* Added padding for content inside */
+  background-color: #222; /* Added a subtle background for the container */
+  border-radius: 8px; /* Added some rounded corners */
 }
 
 .asciiArt {
   font-family: 'Courier New', Courier, monospace; /* Monospace font */
-  color: #c084fc; /* Neon/Bright Purple */
-  background-color: #2d3748; /* Darker Blue-Gray */
-  padding: 1rem;
-  border-radius: 0.25rem;
+  color: #c084fc; /* Default color, will be overridden by spans */
+  background-color: transparent; /* Make pre background transparent as container has bg */
+  padding: 0; /* Padding is now on the container */
+  border-radius: 0.25rem; /* Can be removed if container has border-radius */
   white-space: pre; /* Preserve spacing and line breaks */
-  overflow-x: auto; /* Allow horizontal scrolling if art is too wide */
-  text-align: left;
-  line-height: 1.2; /* Adjust line height for better readability */
+  /* overflow-x: auto; /* Removed, container handles overflow */
+  text-align: left; /* Keep text left-aligned within pre */
+  line-height: 1.0; /* Adjusted for better fit with dynamic font sizes */
+  width: 100%; /* Make pre take full width of container */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .generateButton {
@@ -34,11 +33,76 @@
 .destroyButton {
   background-color: #c53030; /* Red */
   color: white;
-  margin-top: 0.5rem; /* Add some space above the destroy button */
+  /* margin-top: 0.5rem; /* Will be controlled by actionButtonsContainer */
+}
+
+.exportGifButton {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background-color: #4CAF50; /* Green example */
+  color: white;
+  cursor: pointer;
+}
+.exportGifButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.actionButtonsContainer {
+  display: flex;
+  justify-content: space-between; /* This will put Destroy on left, GIF on right */
+  align-items: center;
+  width: 100%; /* Takes full width of its parent (.asciiArtContainer) */
+  margin-top: 10px; /* Space above the buttons */
+  padding: 0 5px; /* Optional: small padding so buttons aren't flush with container edges */
+  box-sizing: border-box;
 }
 
 .controls {
   margin-bottom: 2rem; /* Add space between controls and ASCII art */
   display: flex;
   align-items: center;
+}
+
+.aboutModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's on top */
+}
+
+.aboutModalContent {
+  background-color: #2d3748; /* Dark background, similar to existing elements */
+  color: #eee;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px; /* Max width for readability */
+  width: 90%; /* Responsive width */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  text-align: left;
+}
+
+.aboutModalContent h2 {
+  margin-top: 0;
+  color: '#c084fc'; /* Use a theme color, e.g., initial purple */
+}
+
+.modalCloseButton {
+  /* Style like other buttons or make distinct */
+  display: block;
+  margin-top: 20px;
+  margin-left: auto; /* Align to right */
+  padding: 8px 15px;
+  background-color: '#c084fc';
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

@@ -5,6 +5,12 @@ import styles from '../styles/Home.module.css'
 import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty, isPatternStable } from '../lib/gameOfLife'
 import AsciiDonut from '../components/AsciiDonut';
 
+// To enable GIF export, you'll need to install a GIF encoding library.
+// Example using 'gifenc': npm install gifenc
+// import { GIFEncoder, quantize, applyPalette } from 'gifenc'; // Conceptual, uncomment and use after install
+// You might also want 'file-saver' for robust downloads: npm install file-saver
+// import { saveAs } from 'file-saver'; // Conceptual
+
 const SIMULATION_SPEED_MS = 200; // ms per generation
 const DEAD_CELL_CHAR = ' ';
 const NEWBORN_CELL_CHAR = '#';
@@ -13,6 +19,23 @@ const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
 const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Purple, Yellow, Cyan
 
 const MAX_INPUT_CHARS_PER_LINE = 12;
+
+const GIF_STATIC_FRAME_COUNT = 5;
+const GIF_STATIC_FRAME_DELAY_MS = 500;
+const GIF_SIMULATION_FRAME_DELAY_MS = SIMULATION_SPEED_MS;
+const GIF_MAX_TOTAL_FRAMES = 300;
+const GIF_LOOP_DETECTION_HISTORY_SIZE = 10;
+const GIF_OSCILLATOR_CYCLES_TO_CAPTURE = 2;
+const GIF_CANVAS_FONT_SIZE_PX = 10;
+const GIF_CANVAS_CHAR_WIDTH_PX = GIF_CANVAS_FONT_SIZE_PX * 0.6; // Approximate monospace char width
+const GIF_CANVAS_LINE_HEIGHT_PX = GIF_CANVAS_FONT_SIZE_PX;
+
+
+const aboutText = `This application brings Conway's Game of Life to your text! Start by typing a word or phrase, and watch it transform into ASCII art using the classic "Standard" Figlet font. This generated artwork then becomes the initial seed for a Game of Life simulation.
+
+In this simulation, the original characters from your text art will remain purple. As the Game of Life evolves, any new cells ('#') that are born, or any '#' characters that were part of the original Figlet design and survive, will light up in random neon colors (purple, yellow, or blue). The simulation grid is a toroidal array, meaning it wraps around on all sides – cells moving off one edge will reappear on the opposite side.
+
+Below the Game of Life, you'll see a spinning ASCII donut. This is a separate animation primarily to visually demonstrate the concept of a toroidal shape, similar to how the Game of Life grid behaves with its wrap-around edges. Enjoy the cellular automata and the spinning pastry!`;
 
 export default function Home() {
   const frameMetadata = {
@@ -36,8 +59,11 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [colorMode, setColorMode] = useState('colorful');
-  const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Default font size
+  const [dynamicFontSize, setDynamicFontSize] = useState('10px');
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [isGeneratingGif, setIsGeneratingGif] = useState(false);
+  const [gifProgress, setGifProgress] = useState('');
+
 
   const getRandomNeonColor = () => {
     return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
@@ -73,7 +99,7 @@ export default function Home() {
     if (!trimmedInput) {
       setAsciiArt('');
       setGameOfLifeGrid(null);
-      setDynamicFontSize('10px'); // Reset font size
+      setDynamicFontSize('10px');
       return;
     }
 
@@ -156,7 +182,7 @@ export default function Home() {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      setDynamicFontSize('10px'); // Reset font size on error
+      setDynamicFontSize('10px');
     }
   };
 
@@ -172,7 +198,7 @@ export default function Home() {
         setIsSimulating(false)
         return null;
       }
-      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE, colorMode);
+      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
 
       let nextStableCount = 0;
       if (isPatternStable(prevGrid, newGrid)) {
@@ -207,6 +233,207 @@ export default function Home() {
     simulationIntervalId.current = setInterval(simulationStep, SIMULATION_SPEED_MS);
   }
 
+  const renderGridToCanvas = (grid, canvasElement, initialPurpleColor) => {
+    const ctx = canvasElement.getContext('2d');
+    if (!grid || grid.length === 0 || !grid[0] || !ctx) {
+      if (ctx) ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      return;
+    }
+
+    const gridHeight = grid.length;
+    const gridWidth = grid[0].length;
+
+    canvasElement.width = gridWidth * GIF_CANVAS_CHAR_WIDTH_PX;
+    canvasElement.height = gridHeight * GIF_CANVAS_LINE_HEIGHT_PX;
+
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    ctx.fillStyle = '#000000'; // Assuming a black background for the GIF
+    ctx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+    ctx.font = `${GIF_CANVAS_FONT_SIZE_PX}px monospace`;
+    ctx.textBaseline = 'top';
+
+    for (let r = 0; r < gridHeight; r++) {
+      for (let c = 0; c < gridWidth; c++) {
+        const cell = grid[r][c];
+        if (cell) {
+          ctx.fillStyle = cell.color || initialPurpleColor;
+          ctx.fillText(cell.char, c * GIF_CANVAS_CHAR_WIDTH_PX, r * GIF_CANVAS_LINE_HEIGHT_PX);
+        }
+      }
+    }
+  };
+
+  const handleStartGifExport = async () => {
+    let currentGridSource = gameOfLifeGrid;
+    if (!currentGridSource && asciiArt) {
+      currentGridSource = initializeGridFromAscii(asciiArt, INITIAL_NEON_PURPLE);
+    }
+
+    if (!currentGridSource || isEmpty(currentGridSource)) {
+      alert("Please generate some art or have a non-empty pattern first!");
+      return;
+    }
+
+    setIsGeneratingGif(true);
+    setGifProgress('Initializing GIF export...');
+
+    // ---- Conceptual GIF Encoder Initialization ----
+    // This assumes a library like gifenc or a similar API.
+    // User needs to install and import the actual library.
+    // Example: const { GIFEncoder } = await import('gifenc'); // If using dynamic import
+    // const gif = GIFEncoder();
+    console.log("Conceptual: Initializing GIF Encoder");
+    // ---- End Conceptual GIF Encoder Initialization ----
+
+    const offscreenCanvas = document.createElement('canvas');
+    // Note: renderGridToCanvas sets canvas width/height dynamically
+
+    let currentSimGrid = JSON.parse(JSON.stringify(currentGridSource));
+
+    try {
+      setGifProgress('Capturing initial static frames...');
+      renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
+      for (let i = 0; i < GIF_STATIC_FRAME_COUNT; i++) {
+        // ---- Conceptual Add Frame ----
+        // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_STATIC_FRAME_DELAY_MS });
+        // Or for gif.js like: gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_STATIC_FRAME_DELAY_MS });
+        console.log(`Conceptual GIF: Added static frame ${i + 1} with delay ${GIF_STATIC_FRAME_DELAY_MS}`);
+        // ---- End Conceptual Add Frame ----
+        if (i < GIF_STATIC_FRAME_COUNT -1) await new Promise(r => setTimeout(r, 50)); // Simulate some work
+      }
+
+      setGifProgress('Simulating Game of Life for GIF...');
+      let frameCount = 0; // Counts simulation frames after static ones
+      let localStablePatternCount = 0;
+      const gridPatternHistory = [];
+
+      while (frameCount < (GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT)) {
+        renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
+        // ---- Conceptual Add Frame ----
+        // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+        console.log(`Conceptual GIF: Added simulation frame ${frameCount + 1} with delay ${GIF_SIMULATION_FRAME_DELAY_MS}`);
+        // ---- End Conceptual Add Frame ----
+
+        if (frameCount < (GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) -1 ) await new Promise(r => setTimeout(r, 50));
+
+        const prevSimGrid = JSON.parse(JSON.stringify(currentSimGrid));
+        currentSimGrid = getNextGeneration(currentSimGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
+        frameCount++;
+
+        const currentPatternForLoopCheck = gridToAsciiDisplay(currentSimGrid);
+        gridPatternHistory.push(currentPatternForLoopCheck); // Store pattern of new grid
+        if (gridPatternHistory.length > GIF_LOOP_DETECTION_HISTORY_SIZE) {
+          gridPatternHistory.shift();
+        }
+
+        if (isEmpty(currentSimGrid)) {
+          setGifProgress('Simulation empty. Finalizing GIF.');
+          renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
+          // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+          console.log(`Conceptual GIF: Added final empty frame.`);
+          break;
+        }
+
+        if (isPatternStable(prevSimGrid, currentSimGrid)) {
+          localStablePatternCount++;
+          if (localStablePatternCount >= 5) {
+            setGifProgress('Pattern stable. Capturing final loop and finalizing GIF.');
+            for (let stableFrame = 0; stableFrame < 3; stableFrame++) { // Add 3 more frames of stable pattern
+               if (frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) break;
+               renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
+               // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+               console.log(`Conceptual GIF: Added final stable frame ${stableFrame + 1}`);
+               if (stableFrame < 2) await new Promise(r => setTimeout(r, 50));
+               // No getNextGeneration here, it's stable
+               frameCount++;
+            }
+            break;
+          }
+        } else {
+          localStablePatternCount = 0;
+          let oscillationDetected = false;
+          // Check for P2 to P5 oscillators. History stores currentSimGrid's pattern.
+          // We need to compare currentSimGrid's pattern with patterns P steps ago.
+          for (let P = 2; P <= 5; P++) {
+            if (gridPatternHistory.length > P) { // Ensure enough history for this period
+              // The pattern added to history was currentSimGrid. We need to compare it with gridPatternHistory[length - 1 - P]
+              // Example: history [p0, p1, p2, p3, p4 (current)]
+              // For P=2, compare p4 with p2 (index length-1-2 = 5-1-2 = 2)
+              const pastPatternIndex = gridPatternHistory.length - 1 - P;
+              if (pastPatternIndex >=0 && gridPatternHistory[pastPatternIndex] === currentPatternForLoopCheck) {
+                setGifProgress(`Oscillation (P=${P}) detected. Capturing ${GIF_OSCILLATOR_CYCLES_TO_CAPTURE} cycle(s)...`);
+                let tempLoopGrid = JSON.parse(JSON.stringify(currentSimGrid));
+                // We've already added currentSimGrid. Now add P-1 more for the first cycle, then (P * (GIF_OSCILLATOR_CYCLES_TO_CAPTURE -1)) for subsequent
+                for (let oscFrame = 0; oscFrame < (P * GIF_OSCILLATOR_CYCLES_TO_CAPTURE) -1 ; oscFrame++) {
+                  if (frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) break;
+                  tempLoopGrid = getNextGeneration(tempLoopGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
+                  renderGridToCanvas(tempLoopGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
+                  // Example: gif.writeFrame(...)
+                  console.log(`Conceptual GIF: Added oscillator frame ${oscFrame + 1}`);
+                  await new Promise(r => setTimeout(r, 50));
+                  frameCount++;
+                }
+                oscillationDetected = true;
+                break;
+              }
+            }
+          }
+          if (oscillationDetected) break;
+        }
+      }
+
+      if(frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) setGifProgress('Max simulation frames reached. Finalizing GIF.');
+      else if (!isSimulating && frameCount > 0) setGifProgress('Simulation ended. Finalizing GIF.');
+
+
+      setGifProgress('Encoding GIF (simulated)...');
+      // ---- Conceptual GIF Finalization & Download ----
+      // Example: const buffer = await gif.finish(); // For gifenc
+      // Or for gif.js:
+      // gif.on('finished', function(blob) {
+      //   console.log("Conceptual GIF: Encoding finished, blob size:", blob.size);
+      //   const url = URL.createObjectURL(blob);
+      //   const a = document.createElement('a');
+      //   a.href = url;
+      //   a.download = 'conways-game-of-life.gif';
+      //   document.body.appendChild(a);
+      //   a.click();
+      //   document.body.removeChild(a);
+      //   URL.revokeObjectURL(url);
+      //   setGifProgress('GIF Generated & Downloaded!');
+      //   // setIsGeneratingGif(false); // Moved to finally for non-event based
+      // });
+      // gif.render(); // Starts rendering for gif.js
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log("Conceptual GIF: Encoding complete. Triggering download.");
+
+      // Simulate download for browser environments
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        const a = document.createElement('a');
+        const simulatedBlob = new Blob(["Simulated GIF content placeholder"], {type : 'image/gif'});
+        a.href = URL.createObjectURL(simulatedBlob);
+        a.download = 'conways-game-of-life-simulated.gif';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+      setGifProgress('GIF Generated (simulated)!');
+      // ---- End Conceptual GIF Finalization & Download ----
+
+    } catch (error) {
+      console.error("Error generating GIF:", error);
+      setGifProgress(`Error: ${error.message || 'Failed to generate GIF.'}`);
+    } finally {
+      setTimeout(() => {
+           setIsGeneratingGif(false);
+           // setGifProgress(''); // Cleared on next action or timeout is fine
+      }, 3000);
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (simulationIntervalId.current) {
@@ -235,6 +462,11 @@ export default function Home() {
         <meta name="fc:frame" content={stringifiedFrameMetadata} />
       </Head>
       <main>
+        <div style={{ textAlign: 'right', padding: '10px 20px 0 0' }}>
+          <button onClick={() => setShowAboutModal(true)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1em' }}>
+            About
+          </button>
+        </div>
         <h1>Conway's Game of Life</h1>
         <div className={styles.controls}>
           <input
@@ -247,33 +479,14 @@ export default function Home() {
             Generate
           </button>
         </div>
-        <div className={styles.colorModeControls} style={{ marginTop: '10px', marginBottom: '20px' }}>
-          <button
-            onClick={() => setColorMode('colorful')}
-            disabled={colorMode === 'colorful' || isSimulating}
-            style={{ marginRight: '10px', padding: '8px 12px', borderRadius: '4px', border: '1px solid #555', backgroundColor: colorMode === 'colorful' && !isSimulating ? '#6b46c1' : '#333', color: 'white', cursor: (colorMode === 'colorful' || isSimulating) ? 'not-allowed' : 'pointer' }}
-          >
-            Colorful
-          </button>
-          <button
-            onClick={() => setColorMode('purple')}
-            disabled={colorMode === 'purple' || isSimulating}
-            style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #555', backgroundColor: colorMode === 'purple' && !isSimulating ? '#6b46c1' : '#333', color: 'white', cursor: (colorMode === 'purple' || isSimulating) ? 'not-allowed' : 'pointer' }}
-          >
-            Purple
-          </button>
-        </div>
-        {/* Render based on gameOfLifeGrid for dynamic colors */}
+
         {gameOfLifeGrid && (
           <div className={styles.asciiArtContainer}>
             <pre className={styles.asciiArt} style={{ fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0' }}>
               {gameOfLifeGrid.map((row, rowIndex) => (
                 <div key={rowIndex}>
                   {row.map((cell, colIndex) => {
-                    let cellColor = 'inherit';
-                    if (cell) {
-                      cellColor = colorMode === 'purple' ? INITIAL_NEON_PURPLE : cell.color;
-                    }
+                    const cellColor = cell ? cell.color : 'inherit';
                     return (
                       <span key={colIndex} style={{ color: cellColor }}>
                         {cell ? cell.char : DEAD_CELL_CHAR}
@@ -283,29 +496,70 @@ export default function Home() {
                 </div>
               ))}
             </pre>
-            <button
-              onClick={handleDestroyClick}
-              className={styles.destroyButton}
-              disabled={isSimulating || !gameOfLifeGrid || isEmpty(gameOfLifeGrid)}
-            >
-              {isSimulating ? 'Simulating...' : 'Destroy'}
-            </button>
+            <div className={styles.actionButtonsContainer}>
+              <button
+                onClick={handleDestroyClick}
+                className={styles.destroyButton}
+                disabled={isSimulating || !gameOfLifeGrid || isEmpty(gameOfLifeGrid) || isGeneratingGif}
+              >
+                {isSimulating ? 'Simulating...' : 'Destroy'}
+              </button>
+              <button
+                onClick={handleStartGifExport}
+                className={styles.exportGifButton}
+                disabled={isGeneratingGif || isSimulating || (!gameOfLifeGrid && !asciiArt) || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
+              >
+                {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
+              </button>
+            </div>
+            {isGeneratingGif && gifProgress && (
+              <div className={styles.gifProgressMessage} style={{ marginTop: '10px', textAlign: 'center', color: '#ccc' }}>
+                {gifProgress}
+              </div>
+            )}
           </div>
         )}
-        {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
         {!gameOfLifeGrid && asciiArt && (
            <div className={styles.asciiArtContainer}>
             <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0'}}>{asciiArt}</pre>
-            <button
-              onClick={handleDestroyClick}
-              className={styles.destroyButton}
-              disabled={!asciiArt}
-            >
-              Destroy
-            </button>
+            <div className={styles.actionButtonsContainer}>
+              <button
+                onClick={handleDestroyClick}
+                className={styles.destroyButton}
+                disabled={!asciiArt || isSimulating || isGeneratingGif}
+              >
+                Destroy
+              </button>
+              <button
+                onClick={handleStartGifExport}
+                className={styles.exportGifButton}
+                disabled={isGeneratingGif || isSimulating || !asciiArt }
+              >
+                {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
+              </button>
+            </div>
+            {isGeneratingGif && gifProgress && (
+                <div className={styles.gifProgressMessage} style={{ marginTop: '10px', textAlign: 'center', color: '#ccc' }}>
+                    {gifProgress}
+                </div>
+            )}
           </div>
         )}
         <AsciiDonut />
+
+        {showAboutModal && (
+          <div className={styles.aboutModalOverlay}>
+            <div className={styles.aboutModalContent}>
+              <h2>About This Application</h2>
+              <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: 'inherit', fontSize: '0.9em' }}>
+                {aboutText}
+              </pre>
+              <button onClick={() => setShowAboutModal(false)} className={styles.modalCloseButton}>
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </>
   )

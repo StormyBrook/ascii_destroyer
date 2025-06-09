@@ -5,6 +5,7 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   background-color: #1a202c; /* Dark Blue */
   color: #cbd5e0; /* Light Gray for text */
+  overflow-x: hidden; /* Add this line */
 }
 
 * {

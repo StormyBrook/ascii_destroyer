@@ -14,6 +14,22 @@ const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Orange chang
 
 
 export default function Home() {
+  const frameMetadata = {
+    version: "next",
+    imageUrl: "/images/frame-image.png", // This should ideally be an absolute URL after deployment
+    button: {
+      title: "Launch Conway's Game of Life", // Max 32 chars
+      action: {
+        type: "launch_frame",
+        name: "Conway's Game of Life",
+        // "url" is omitted to default to the current page (our app's main page)
+        splashImageUrl: "/images/logo-splash.png", // Ideally absolute
+        splashBackgroundColor: "#1a202c"
+      }
+    }
+  };
+  const stringifiedFrameMetadata = JSON.stringify(frameMetadata);
+
   const [inputText, setInputText] = useState('')
   const [asciiArt, setAsciiArt] = useState('') // Stores the original Figlet output string
   const [gameOfLifeGrid, setGameOfLifeGrid] = useState(null)
@@ -149,6 +165,11 @@ export default function Home() {
         <meta name="description" content="Generate ASCII art and watch it evolve with Conway's Game of Life" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Farcaster Frame Meta Tags */}
+        <meta property="og:title" content="Conway's Game of Life - Interactive Simulation & ASCII Art" />
+        <meta property="og:image" content="/images/frame-image.png" />
+        <meta name="fc:frame" content={stringifiedFrameMetadata} />
       </Head>
       <main>
         <h1>Conway's Game of Life</h1>

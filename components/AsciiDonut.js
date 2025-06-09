@@ -123,8 +123,8 @@ const AsciiDonut = () => {
       setDonutOutput(outputString);
 
       // Update main animation view angles
-      rotateMainAngles(0.04, rot1_cos_E, rot1_sin_A); // C: R(.04,e,a)
-      rotateMainAngles(0.02, rot2_cos_C, rot2_sin_D); // C: R(.02,d,c)
+      rotateMainAngles(0.01, rot1_cos_E, rot1_sin_A);
+      rotateMainAngles(0.005, rot2_cos_C, rot2_sin_D);
 
       animationFrameId.current = requestAnimationFrame(animate);
     };

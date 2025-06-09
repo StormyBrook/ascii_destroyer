@@ -1,7 +1,7 @@
 .asciiArtContainer {
   margin-top: 2rem;
   /* width: 100%; /* Let max-width and margin auto handle this */
-  max-width: 95vw;
+  max-width: 98vw;
   overflow-x: auto; /* For content that might overflow due to scaling or fixed width */
   margin-left: auto;
   margin-right: auto;

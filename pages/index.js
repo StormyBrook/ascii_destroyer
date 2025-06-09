@@ -12,7 +12,6 @@ const NEWBORN_CELL_CHAR = '#';
 const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
 const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Purple, Yellow, Cyan
 
-// MAX_FIGLET_ART_WIDTH_TARGET removed
 const MAX_INPUT_CHARS_PER_LINE = 12;
 
 export default function Home() {
@@ -38,7 +37,6 @@ export default function Home() {
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
   const [colorMode, setColorMode] = useState('colorful');
-  // asciiArtScale ref removed
   const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Default font size
 
   const getRandomNeonColor = () => {
@@ -69,7 +67,6 @@ export default function Home() {
       setIsSimulating(false);
     }
     setStableGenerationCount(0);
-    // asciiArtScale.current = 1.0; // Removed
 
     const trimmedInput = inputText.trim();
 
@@ -140,17 +137,17 @@ export default function Home() {
 
       if (tempGridForSizing && tempGridForSizing.length > 0 && tempGridForSizing[0]) {
         const gridCharWidth = tempGridForSizing[0].length;
-        let newFontSize = '12px';
-        if (gridCharWidth > 70) {
-          newFontSize = '5px';
-        } else if (gridCharWidth > 60) {
-          newFontSize = '6px';
-        } else if (gridCharWidth > 50) {
-          newFontSize = '8px';
-        } else if (gridCharWidth > 40) {
-          newFontSize = '10px';
-        }
-        setDynamicFontSize(newFontSize);
+
+        const minCharsForCalc = 20;
+        const maxCharsForCalc = 120;
+        const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
+
+        const minFontSizePx = 5;
+        const maxFontSizePx = 18;
+
+        const preferredFontSizeCalc = `calc(98vw / ${effectiveGridCharWidth})`;
+
+        setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {
         setDynamicFontSize('10px');
       }

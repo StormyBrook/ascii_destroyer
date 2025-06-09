@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import figlet from 'figlet'
 import styles from '../styles/Home.module.css'
 import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty, isPatternStable } from '../lib/gameOfLife'
+import AsciiDonut from '../components/AsciiDonut';
 
 const SIMULATION_SPEED_MS = 200; // ms per generation
 const DEAD_CELL_CHAR = ' ';
@@ -198,6 +199,21 @@ export default function Home() {
             </button>
           </div>
         )}
+        {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
+        {!gameOfLifeGrid && asciiArt && (
+           <div className={styles.asciiArtContainer}>
+            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE}}>{asciiArt}</pre>
+            <button
+              onClick={handleDestroyClick}
+              className={styles.destroyButton}
+              disabled={!asciiArt} // Disable if no asciiArt to initialize from
+            >
+              Destroy
+            </button>
+          </div>
+        )}
+
+        <AsciiDonut /> {/* Add the donut component here */}
       </main>
     </>
   )

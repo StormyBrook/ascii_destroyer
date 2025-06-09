@@ -10,20 +10,18 @@ const DEAD_CELL_CHAR = ' ';
 const NEWBORN_CELL_CHAR = '#';
 
 const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
-const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Orange changed to INITIAL_NEON_PURPLE, Yellow, Cyan (blue)
-
+const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Purple, Yellow, Cyan
 
 export default function Home() {
   const frameMetadata = {
     version: "next",
-    imageUrl: "/images/frame-image.png", // This should ideally be an absolute URL after deployment
+    imageUrl: "/images/frame-image.png",
     button: {
-      title: "Launch Conway's Game of Life", // Max 32 chars
+      title: "Launch Conway's Game of Life",
       action: {
         type: "launch_frame",
         name: "Conway's Game of Life",
-        // "url" is omitted to default to the current page (our app's main page)
-        splashImageUrl: "/images/logo-splash.png", // Ideally absolute
+        splashImageUrl: "/images/logo-splash.png",
         splashBackgroundColor: "#1a202c"
       }
     }
@@ -31,11 +29,12 @@ export default function Home() {
   const stringifiedFrameMetadata = JSON.stringify(frameMetadata);
 
   const [inputText, setInputText] = useState('')
-  const [asciiArt, setAsciiArt] = useState('') // Stores the original Figlet output string
+  const [asciiArt, setAsciiArt] = useState('')
   const [gameOfLifeGrid, setGameOfLifeGrid] = useState(null)
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
+  const [colorMode, setColorMode] = useState('colorful'); // 'colorful' or 'purple'
 
   const getRandomNeonColor = () => {
     return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
@@ -46,25 +45,22 @@ export default function Home() {
   }
 
   const generateAsciiArt = async () => {
-    // New logic to stop ongoing simulation
     if (isSimulating) {
       if (simulationIntervalId.current) {
         clearInterval(simulationIntervalId.current);
         simulationIntervalId.current = null;
       }
       setIsSimulating(false);
-      setStableGenerationCount(0); // Reset the counter
+      setStableGenerationCount(0);
     }
 
-    // Existing logic for generating new art
     if (!inputText) {
       setAsciiArt('')
       setGameOfLifeGrid(null)
-      setStableGenerationCount(0); // Also reset stableGenerationCount here if clearing the art
+      setStableGenerationCount(0);
       return
     }
 
-    // Reset stableGenerationCount here too, as we are starting a new Figlet generation
     setStableGenerationCount(0);
 
     try {
@@ -75,9 +71,7 @@ export default function Home() {
           setGameOfLifeGrid(null)
           return
         }
-        // setStableGenerationCount(0); // This was moved up
         setAsciiArt(data);
-        // Initialize grid with the initial color for Game of Life
         setGameOfLifeGrid(initializeGridFromAscii(data, INITIAL_NEON_PURPLE));
       })
     } catch (error) {
@@ -99,23 +93,18 @@ export default function Home() {
         setIsSimulating(false)
         return null;
       }
-      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
+      const newGrid = getNextGeneration(prevGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE, colorMode);
 
       let nextStableCount = 0;
-      if (isPatternStable(prevGrid, newGrid)) { // Use isPatternStable here
-        // Access stableGenerationCount from the closure of the Home component,
-        // not from a potentially stale prevGrid or a new state value not yet applied.
+      if (isPatternStable(prevGrid, newGrid)) {
         nextStableCount = stableGenerationCount + 1;
       }
-      // This setStableGenerationCount will schedule an update.
-      // The `nextStableCount` used in the condition below is the one calculated in this step.
       setStableGenerationCount(nextStableCount);
 
       if (isEmpty(newGrid) || nextStableCount >= 10) {
         clearInterval(simulationIntervalId.current);
         setIsSimulating(false);
         setAsciiArt(gridToAsciiDisplay(newGrid));
-        // gameOfLifeGrid will be updated by the return value
       } else {
         setAsciiArt(gridToAsciiDisplay(newGrid));
       }
@@ -124,7 +113,7 @@ export default function Home() {
   }
 
   const handleDestroyClick = () => {
-    if (isSimulating || !asciiArt ) return; // Ensure asciiArt (original figlet output) exists
+    if (isSimulating || !asciiArt ) return;
 
     const initialGrid = initializeGridFromAscii(asciiArt, INITIAL_NEON_PURPLE);
 
@@ -133,13 +122,12 @@ export default function Home() {
         setGameOfLifeGrid(null);
         return;
     }
-    setStableGenerationCount(0); // Reset before starting simulation
+    setStableGenerationCount(0);
     setGameOfLifeGrid(initialGrid);
     setIsSimulating(true);
     simulationIntervalId.current = setInterval(simulationStep, SIMULATION_SPEED_MS);
   }
 
-  // Clear interval on unmount
   useEffect(() => {
     return () => {
       if (simulationIntervalId.current) {
@@ -148,13 +136,11 @@ export default function Home() {
     }
   }, [])
 
-  // Effect to stop simulation if asciiArt is cleared by other means,
-  // or if gameOfLifeGrid becomes null (e.g. new text input cleared it)
   useEffect(() => {
     if ((!asciiArt || !gameOfLifeGrid) && isSimulating) {
       clearInterval(simulationIntervalId.current);
       setIsSimulating(false);
-      setGameOfLifeGrid(null); // Ensure grid is also cleared
+      setGameOfLifeGrid(null);
     }
   }, [asciiArt, gameOfLifeGrid, isSimulating]);
 
@@ -165,8 +151,6 @@ export default function Home() {
         <meta name="description" content="Generate ASCII art and watch it evolve with Conway's Game of Life" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-
-        {/* Farcaster Frame Meta Tags */}
         <meta property="og:title" content="Conway's Game of Life - Interactive Simulation & ASCII Art" />
         <meta property="og:image" content="/images/frame-image.png" />
         <meta name="fc:frame" content={stringifiedFrameMetadata} />
@@ -184,17 +168,38 @@ export default function Home() {
             Generate
           </button>
         </div>
-        {/* Render based on gameOfLifeGrid for dynamic colors */}
+        <div className={styles.colorModeControls} style={{ marginTop: '10px', marginBottom: '20px' }}>
+          <button
+            onClick={() => setColorMode('colorful')}
+            disabled={colorMode === 'colorful' || isSimulating}
+            style={{ marginRight: '10px', padding: '8px 12px', borderRadius: '4px', border: '1px solid #555', backgroundColor: colorMode === 'colorful' && !isSimulating ? '#6b46c1' : '#333', color: 'white', cursor: (colorMode === 'colorful' || isSimulating) ? 'not-allowed' : 'pointer' }}
+          >
+            Colorful
+          </button>
+          <button
+            onClick={() => setColorMode('purple')}
+            disabled={colorMode === 'purple' || isSimulating}
+            style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #555', backgroundColor: colorMode === 'purple' && !isSimulating ? '#6b46c1' : '#333', color: 'white', cursor: (colorMode === 'purple' || isSimulating) ? 'not-allowed' : 'pointer' }}
+          >
+            Purple
+          </button>
+        </div>
         {gameOfLifeGrid && (
           <div className={styles.asciiArtContainer}>
             <pre className={styles.asciiArt}>
               {gameOfLifeGrid.map((row, rowIndex) => (
                 <div key={rowIndex}>
-                  {row.map((cell, colIndex) => (
-                    <span key={colIndex} style={{ color: cell ? cell.color : 'inherit' }}>
-                      {cell ? cell.char : DEAD_CELL_CHAR}
-                    </span>
-                  ))}
+                  {row.map((cell, colIndex) => {
+                    let cellColor = 'inherit';
+                    if (cell) {
+                      cellColor = colorMode === 'purple' ? INITIAL_NEON_PURPLE : cell.color;
+                    }
+                    return (
+                      <span key={colIndex} style={{ color: cellColor }}>
+                        {cell ? cell.char : DEAD_CELL_CHAR}
+                      </span>
+                    );
+                  })}
                 </div>
               ))}
             </pre>
@@ -207,34 +212,19 @@ export default function Home() {
             </button>
           </div>
         )}
-        {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
         {!gameOfLifeGrid && asciiArt && (
            <div className={styles.asciiArtContainer}>
             <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE}}>{asciiArt}</pre>
             <button
               onClick={handleDestroyClick}
               className={styles.destroyButton}
-              disabled={!asciiArt} // Disable if no asciiArt to initialize from
+              disabled={!asciiArt}
             >
               Destroy
             </button>
           </div>
         )}
-        {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
-        {!gameOfLifeGrid && asciiArt && (
-           <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE}}>{asciiArt}</pre>
-            <button
-              onClick={handleDestroyClick}
-              className={styles.destroyButton}
-              disabled={!asciiArt} // Disable if no asciiArt to initialize from
-            >
-              Destroy
-            </button>
-          </div>
-        )}
-
-        <AsciiDonut /> {/* Add the donut component here */}
+        <AsciiDonut />
       </main>
     </>
   )

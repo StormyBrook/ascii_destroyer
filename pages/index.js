@@ -12,7 +12,8 @@ const NEWBORN_CELL_CHAR = '#';
 const INITIAL_NEON_PURPLE = '#c084fc'; // Orchid, as a distinct purple
 const NEON_COLORS = [INITIAL_NEON_PURPLE, '#FFFF00', '#00FFFF']; // Purple, Yellow, Cyan
 
-const MAX_FIGLET_ART_WIDTH_TARGET = 60; // Target width for Figlet art before padding
+// MAX_FIGLET_ART_WIDTH_TARGET removed
+const MAX_INPUT_CHARS_PER_LINE = 12;
 
 export default function Home() {
   const frameMetadata = {
@@ -36,8 +37,9 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [colorMode, setColorMode] = useState('colorful'); // 'colorful' or 'purple'
-  const asciiArtScale = useRef(1.0);
+  const [colorMode, setColorMode] = useState('colorful');
+  // asciiArtScale ref removed
+  const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Default font size
 
   const getRandomNeonColor = () => {
     return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
@@ -67,13 +69,14 @@ export default function Home() {
       setIsSimulating(false);
     }
     setStableGenerationCount(0);
-    asciiArtScale.current = 1.0; // Reset scale at the beginning
+    // asciiArtScale.current = 1.0; // Removed
 
     const trimmedInput = inputText.trim();
 
     if (!trimmedInput) {
       setAsciiArt('');
       setGameOfLifeGrid(null);
+      setDynamicFontSize('10px'); // Reset font size
       return;
     }
 
@@ -81,18 +84,34 @@ export default function Home() {
     let finalFigletString = "";
 
     try {
-      if (words.length >= 3) { // Long phrase handling
+      if (words.length >= 3) {
         let linesForFiglet = [];
-        for (let i = 0; i < words.length; i += 2) {
-          linesForFiglet.push(words.slice(i, i + 2).join(' '));
+        let currentLine = "";
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          if (word.length > MAX_INPUT_CHARS_PER_LINE) {
+            if (currentLine.length > 0) {
+              linesForFiglet.push(currentLine);
+            }
+            currentLine = "";
+            linesForFiglet.push(word);
+          } else if (currentLine.length > 0 && (currentLine + " " + word).length > MAX_INPUT_CHARS_PER_LINE) {
+            linesForFiglet.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = currentLine.length > 0 ? currentLine + " " + word : word;
+          }
         }
-        if (linesForFiglet.length === 0 && words.length > 0) {
-            linesForFiglet.push(trimmedInput);
-        }
-         if (linesForFiglet.length === 0) {
-            linesForFiglet.push(trimmedInput);
+        if (currentLine.length > 0) {
+          linesForFiglet.push(currentLine);
         }
 
+        if (linesForFiglet.length === 0 && trimmedInput.length > 0) {
+           linesForFiglet.push(trimmedInput);
+        }
+        if (linesForFiglet.length === 0) {
+            linesForFiglet.push(trimmedInput);
+        }
 
         const figletArtBlocksPromises = linesForFiglet.map(line => getFigletArtPromise(line, { font: 'Standard' }));
         const figletArtBlocks = await Promise.all(figletArtBlocksPromises);
@@ -110,32 +129,37 @@ export default function Home() {
           });
         });
         finalFigletString = allCenteredLines.join('\n');
-      } else { // Short phrase (0-2 words)
+      } else if (trimmedInput.length > 0) {
         const rawFigletOutput = await getFigletArtPromise(trimmedInput, { font: 'Standard' });
         finalFigletString = rawFigletOutput;
       }
 
-      if (finalFigletString) {
-          const lines = finalFigletString.split('\n');
-          const actualMaxWidthInChars = lines.length > 0 ? Math.max(0, ...lines.map(l => l.length)) : 0;
-
-          if (actualMaxWidthInChars > 0 && actualMaxWidthInChars > MAX_FIGLET_ART_WIDTH_TARGET) {
-              asciiArtScale.current = MAX_FIGLET_ART_WIDTH_TARGET / actualMaxWidthInChars;
-          } else {
-              asciiArtScale.current = 1.0;
-          }
-      } else {
-          asciiArtScale.current = 1.0;
-      }
-
       setAsciiArt(finalFigletString);
-      setGameOfLifeGrid(initializeGridFromAscii(finalFigletString, INITIAL_NEON_PURPLE));
+      const tempGridForSizing = initializeGridFromAscii(finalFigletString, INITIAL_NEON_PURPLE);
+      setGameOfLifeGrid(tempGridForSizing);
+
+      if (tempGridForSizing && tempGridForSizing.length > 0 && tempGridForSizing[0]) {
+        const gridCharWidth = tempGridForSizing[0].length;
+        let newFontSize = '12px';
+        if (gridCharWidth > 70) {
+          newFontSize = '5px';
+        } else if (gridCharWidth > 60) {
+          newFontSize = '6px';
+        } else if (gridCharWidth > 50) {
+          newFontSize = '8px';
+        } else if (gridCharWidth > 40) {
+          newFontSize = '10px';
+        }
+        setDynamicFontSize(newFontSize);
+      } else {
+        setDynamicFontSize('10px');
+      }
 
     } catch (error) {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      asciiArtScale.current = 1.0;
+      setDynamicFontSize('10px'); // Reset font size on error
     }
   };
 
@@ -245,7 +269,7 @@ export default function Home() {
         {/* Render based on gameOfLifeGrid for dynamic colors */}
         {gameOfLifeGrid && (
           <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{ transform: `scale(${asciiArtScale.current})`, transformOrigin: 'top left', whiteSpace: 'pre' }}>
+            <pre className={styles.asciiArt} style={{ fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0' }}>
               {gameOfLifeGrid.map((row, rowIndex) => (
                 <div key={rowIndex}>
                   {row.map((cell, colIndex) => {
@@ -274,7 +298,7 @@ export default function Home() {
         {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
         {!gameOfLifeGrid && asciiArt && (
            <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, transform: `scale(${asciiArtScale.current})`, transformOrigin: 'top left', whiteSpace: 'pre'}}>{asciiArt}</pre>
+            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0'}}>{asciiArt}</pre>
             <button
               onClick={handleDestroyClick}
               className={styles.destroyButton}

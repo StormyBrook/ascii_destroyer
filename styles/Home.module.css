@@ -1,9 +1,13 @@
 .asciiArtContainer {
   margin-top: 2rem;
-  width: 100%;
+  width: 100%; /* Retained, but max-width will cap it */
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 95vw;
+  overflow-x: auto; /* Added for the container itself */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .asciiArt {

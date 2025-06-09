@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState, useEffect, useRef, useCallback } from 'react' // Added useCallback
+import { useState, useEffect, useRef, useCallback } from 'react'
 import figlet from 'figlet'
 import styles from '../styles/Home.module.css'
 import { initializeGridFromAscii, getNextGeneration, isStable, isEmpty, isPatternStable } from '../lib/gameOfLife'
@@ -67,35 +67,32 @@ export default function Home() {
       setIsSimulating(false);
     }
     setStableGenerationCount(0);
-    asciiArtScale.current = 1.0; // Reset scale
+    asciiArtScale.current = 1.0; // Reset scale at the beginning
 
     const trimmedInput = inputText.trim();
 
     if (!trimmedInput) {
-      setAsciiArt('')
-      setGameOfLifeGrid(null)
-      // stableGenerationCount is already reset above
-      return
+      setAsciiArt('');
+      setGameOfLifeGrid(null);
+      return;
     }
 
     const words = trimmedInput.split(/\s+/).filter(Boolean);
+    let finalFigletString = "";
 
     try {
-      let finalFigletString = "";
-
       if (words.length >= 3) { // Long phrase handling
         let linesForFiglet = [];
-        for (let i = 0; i < words.length; i += 2) { // Simple 2 words per line
+        for (let i = 0; i < words.length; i += 2) {
           linesForFiglet.push(words.slice(i, i + 2).join(' '));
         }
-        // Fallback if splitting resulted in empty array but words were present (should not happen with filter(Boolean))
         if (linesForFiglet.length === 0 && words.length > 0) {
             linesForFiglet.push(trimmedInput);
         }
-        // If linesForFiglet is still empty (e.g. input was just spaces), default to full input
-        if (linesForFiglet.length === 0) {
+         if (linesForFiglet.length === 0) {
             linesForFiglet.push(trimmedInput);
         }
+
 
         const figletArtBlocksPromises = linesForFiglet.map(line => getFigletArtPromise(line, { font: 'Standard' }));
         const figletArtBlocks = await Promise.all(figletArtBlocksPromises);
@@ -107,29 +104,28 @@ export default function Home() {
 
         let allCenteredLines = [];
         figletArtBlocks.forEach(block => {
-          const blockLines = block.split('\n');
-          // Ensure consistent number of lines for each block for proper vertical alignment if some blocks are shorter
-          // This part is tricky; for simplicity, we'll just center each line of each block
-          // A more advanced approach might pad blocks vertically too.
-          blockLines.forEach(line => {
+          block.split('\n').forEach(line => {
             const paddingNeeded = Math.floor((maxWidthOfAllBlocks - line.length) / 2);
             allCenteredLines.push(' '.repeat(Math.max(0, paddingNeeded)) + line);
           });
         });
         finalFigletString = allCenteredLines.join('\n');
-        asciiArtScale.current = 1.0; // No scaling for wrapped text
-
       } else { // Short phrase (0-2 words)
         const rawFigletOutput = await getFigletArtPromise(trimmedInput, { font: 'Standard' });
-        const lines = rawFigletOutput.split('\n');
-        const maxWidthOfRawFiglet = Math.max(0, ...lines.map(l => l.length));
-
-        if (maxWidthOfRawFiglet > MAX_FIGLET_ART_WIDTH_TARGET) {
-          asciiArtScale.current = MAX_FIGLET_ART_WIDTH_TARGET / maxWidthOfRawFiglet;
-        } else {
-          asciiArtScale.current = 1.0;
-        }
         finalFigletString = rawFigletOutput;
+      }
+
+      if (finalFigletString) {
+          const lines = finalFigletString.split('\n');
+          const actualMaxWidthInChars = lines.length > 0 ? Math.max(0, ...lines.map(l => l.length)) : 0;
+
+          if (actualMaxWidthInChars > 0 && actualMaxWidthInChars > MAX_FIGLET_ART_WIDTH_TARGET) {
+              asciiArtScale.current = MAX_FIGLET_ART_WIDTH_TARGET / actualMaxWidthInChars;
+          } else {
+              asciiArtScale.current = 1.0;
+          }
+      } else {
+          asciiArtScale.current = 1.0;
       }
 
       setAsciiArt(finalFigletString);
@@ -139,14 +135,12 @@ export default function Home() {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      asciiArtScale.current = 1.0; // Reset scale on error
+      asciiArtScale.current = 1.0;
     }
   };
 
   const gridToAsciiDisplay = (grid) => {
     if (!grid || grid.length === 0) return '';
-    // Apply scaling here if needed, or adjust rendering logic for spans
-    // For now, this function converts grid to string; scaling is conceptual for rendering
     return grid.map(row => row.map(cell => (cell ? cell.char : DEAD_CELL_CHAR)).join('')).join('\n');
   }
 
@@ -208,20 +202,6 @@ export default function Home() {
     }
   }, [asciiArt, gameOfLifeGrid, isSimulating]);
 
-  // useEffect to regenerate ASCII art when input text changes and it's not empty.
-  // This makes it auto-update. If manual generation is preferred, remove/comment out.
-  // useEffect(() => {
-  //   if (inputText.trim()) {
-  //     generateAsciiArt();
-  //   } else {
-  //     // Clear art if input is cleared
-  //     setAsciiArt('');
-  //     setGameOfLifeGrid(null);
-  //     setStableGenerationCount(0);
-  //   }
-  //   // generateAsciiArt should be memoized with useCallback if included in deps
-  // }, [inputText]); // Be cautious with generateAsciiArt in deps if not memoized
-
   return (
     <>
       <Head>
@@ -265,7 +245,7 @@ export default function Home() {
         {/* Render based on gameOfLifeGrid for dynamic colors */}
         {gameOfLifeGrid && (
           <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{ transform: `scaleX(${asciiArtScale.current})`, transformOrigin: 'left', whiteSpace: 'pre' }}>
+            <pre className={styles.asciiArt} style={{ transform: `scale(${asciiArtScale.current})`, transformOrigin: 'top left', whiteSpace: 'pre' }}>
               {gameOfLifeGrid.map((row, rowIndex) => (
                 <div key={rowIndex}>
                   {row.map((cell, colIndex) => {
@@ -294,7 +274,7 @@ export default function Home() {
         {/* Fallback for initial display from figlet before simulation or if grid is cleared */}
         {!gameOfLifeGrid && asciiArt && (
            <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, transform: `scaleX(${asciiArtScale.current})`, transformOrigin: 'left', whiteSpace: 'pre'}}>{asciiArt}</pre>
+            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, transform: `scale(${asciiArtScale.current})`, transformOrigin: 'top left', whiteSpace: 'pre'}}>{asciiArt}</pre>
             <button
               onClick={handleDestroyClick}
               className={styles.destroyButton}

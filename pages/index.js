@@ -150,7 +150,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <h1>ASCII Art Generator & Game of Life</h1>
+        <h1>Conway's Game of Life</h1>
         <div className={styles.controls}>
           <input
             type="text"

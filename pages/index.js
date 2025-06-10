@@ -168,8 +168,8 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        const minFontSizePx = 7; // Increased min
-        const maxFontSizePx = 26; // Significantly increased max
+        const minFontSizePx = 10;
+        const maxFontSizePx = 32;
 
         const preferredFontSizeCalc = `calc(98vw / ${effectiveGridCharWidth})`;
 

@@ -7,7 +7,7 @@
   margin-left: auto;
   margin-right: auto;
   padding: 10px; /* Added padding for content inside */
-  /* background-color: #222; /* Removed */
+  background-color: #151A26; /* Added this line */
   border-radius: 8px; /* Added some rounded corners */
 }
 

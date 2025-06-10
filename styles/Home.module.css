@@ -1,14 +1,14 @@
 .asciiArtContainer {
+  width: 100%; /* Take full width of the centered slot from parent flex */
+  max-width: 1200px; /* Cap for large screens */
   margin-top: 2rem;
-  margin-bottom: 2rem; /* Added for consistent spacing */
-  width: calc(100vw - 40px);
-  max-width: 1200px; /* Added a max-width for very large screens */
-  overflow-x: hidden; /* Changed from auto */
-  margin-left: auto;
-  margin-right: auto;
-  padding: 10px; /* Added padding for content inside */
-  background-color: #151A26; /* Added this line */
-  border-radius: 8px; /* Added some rounded corners */
+  margin-bottom: 2rem;
+  /* margin-left and margin-right are no longer 'auto' for centering this element itself,
+     as parent .mainContentArea handles centering of its flex children. */
+  overflow-x: hidden;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #151A26;
 }
 
 .asciiArt {

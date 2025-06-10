@@ -168,21 +168,21 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        const minFontSizePx = 5;
-        const maxFontSizePx = 18;
+        const minFontSizePx = 7; // Increased min
+        const maxFontSizePx = 26; // Significantly increased max
 
         const preferredFontSizeCalc = `calc(98vw / ${effectiveGridCharWidth})`;
 
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {
-        setDynamicFontSize('10px');
+        setDynamicFontSize('12px'); // Adjusted default fallback slightly
       }
 
     } catch (error) {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      setDynamicFontSize('10px');
+      setDynamicFontSize('12px'); // Adjusted default fallback slightly
     }
   };
 

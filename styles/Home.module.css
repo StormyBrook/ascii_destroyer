@@ -19,7 +19,7 @@
   border-radius: 0.25rem; /* Can be removed if container has border-radius */
   white-space: pre; /* Preserve spacing and line breaks */
   /* overflow-x: auto; /* Removed, container handles overflow */
-  text-align: left; /* Keep text left-aligned within pre */
+  text-align: center; /* Added this line */
   line-height: 1.0; /* Adjusted for better fit with dynamic font sizes */
   width: 100%; /* Make pre take full width of container */
   box-sizing: border-box; /* Include padding and border in the element's total width and height */

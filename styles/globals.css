@@ -1,3 +1,13 @@
+html {
+  box-sizing: border-box;
+  overflow-x: hidden;
+  max-width: 100vw; /* Ensure html cannot exceed viewport */
+}
+
+*, *::before, *::after {
+  box-sizing: inherit; /* Makes box-sizing easier to manage */
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -5,13 +15,12 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   background-color: #1a202c; /* Dark Blue */
   color: #cbd5e0; /* Light Gray for text */
-  overflow-x: hidden; /* Add this line */
+  width: 100%; /* Make body take full width of html */
+  overflow-x: hidden; /* Redundant if html has it, but safe */
 }
 
-* {
-  box-sizing: border-box;
-}
-
+/* Removed the main style from globals.css as it will be in Home.module.css for mainContentArea */
+/*
 main {
   display: flex;
   flex-direction: column;
@@ -19,6 +28,7 @@ main {
   padding: 2rem;
   min-height: 100vh;
 }
+*/
 
 input[type="text"] {
   padding: 0.5rem;

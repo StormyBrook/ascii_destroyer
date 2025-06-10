@@ -3,7 +3,7 @@
   margin-bottom: 2rem; /* Added for consistent spacing */
   width: calc(100vw - 40px);
   max-width: 1200px; /* Added a max-width for very large screens */
-  overflow-x: auto;
+  overflow-x: hidden; /* Changed from auto */
   margin-left: auto;
   margin-right: auto;
   padding: 10px; /* Added padding for content inside */
@@ -114,4 +114,20 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.mainContentArea {
+  width: 100%;
+  /* max-width: 100%; /* Typically inherits from body/html if they are set correctly */
+  overflow-x: hidden; /* Prevent this specific container from creating horizontal scroll */
+  box-sizing: border-box;
+  /* Add any specific padding for main content area if desired, e.g. */
+  /* padding: 0 10px; /* Gutters for the main content, if asciiArtContainer's calc(100vw-40px) is relative to this */
+  /* For now, let's keep it simple and assume body/html handles overall viewport. */
+  /* Restoring properties from old global main style for consistency */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
 }

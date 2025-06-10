@@ -428,7 +428,7 @@ export default function Home() {
         <meta property="og:image" content="/images/frame-image.png" />
         <meta name="fc:frame" content={stringifiedFrameMetadata} />
       </Head>
-      <main>
+      <main className={styles.mainContentArea}>
         <div style={{ textAlign: 'right', padding: '10px 20px 0 0' }}>
           <button onClick={() => setShowAboutModal(true)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1em' }}>
             About

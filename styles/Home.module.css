@@ -7,7 +7,7 @@
   margin-left: auto;
   margin-right: auto;
   padding: 10px; /* Added padding for content inside */
-  background-color: #222; /* Added a subtle background for the container */
+  /* background-color: #222; /* Removed */
   border-radius: 8px; /* Added some rounded corners */
 }
 
@@ -43,6 +43,9 @@
   background-color: #4CAF50; /* Green example */
   color: white;
   cursor: pointer;
+  position: absolute;
+  right: 5px;
+  /* top: 50%; transform: translateY(-50%); might be needed if heights differ significantly */
 }
 .exportGifButton:disabled {
   background-color: #555;
@@ -50,13 +53,19 @@
 }
 
 .actionButtonsContainer {
+  /* Sizing and centering for the container itself */
+  width: calc(100vw - 40px); /* Match .asciiArtContainer's responsive width */
+  max-width: 1200px;      /* Match .asciiArtContainer's max width */
+  margin: 10px auto 0 auto; /* Top margin, auto for horizontal centering, 0 bottom */
+
+  /* Flexbox for aligning children */
   display: flex;
-  justify-content: space-between; /* This will put Destroy on left, GIF on right */
+  justify-content: center; /* Center the Destroy button */
   align-items: center;
-  width: 100%; /* Takes full width of its parent (.asciiArtContainer) */
-  margin-top: 10px; /* Space above the buttons */
-  padding: 0 5px; /* Optional: small padding so buttons aren't flush with container edges */
+  position: relative; /* For absolute positioning of the GIF button */
+  padding: 0 5px; /* Small padding so buttons aren't flush with container edges */
   box-sizing: border-box;
+  min-height: 40px; /* Ensure container has some height for absolute positioning context */
 }
 
 .controls {

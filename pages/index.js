@@ -27,7 +27,7 @@ const GIF_MAX_TOTAL_FRAMES = 300;
 const GIF_LOOP_DETECTION_HISTORY_SIZE = 10;
 const GIF_OSCILLATOR_CYCLES_TO_CAPTURE = 2;
 const GIF_CANVAS_FONT_SIZE_PX = 10;
-const GIF_CANVAS_CHAR_WIDTH_PX = GIF_CANVAS_FONT_SIZE_PX * 0.6; // Approximate monospace char width
+const GIF_CANVAS_CHAR_WIDTH_PX = GIF_CANVAS_FONT_SIZE_PX * 0.6;
 const GIF_CANVAS_LINE_HEIGHT_PX = GIF_CANVAS_FONT_SIZE_PX;
 
 
@@ -247,7 +247,7 @@ export default function Home() {
     canvasElement.height = gridHeight * GIF_CANVAS_LINE_HEIGHT_PX;
 
     ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    ctx.fillStyle = '#000000'; // Assuming a black background for the GIF
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvasElement.width, canvasElement.height);
 
     ctx.font = `${GIF_CANVAS_FONT_SIZE_PX}px monospace`;
@@ -278,42 +278,30 @@ export default function Home() {
     setIsGeneratingGif(true);
     setGifProgress('Initializing GIF export...');
 
-    // ---- Conceptual GIF Encoder Initialization ----
-    // This assumes a library like gifenc or a similar API.
-    // User needs to install and import the actual library.
-    // Example: const { GIFEncoder } = await import('gifenc'); // If using dynamic import
-    // const gif = GIFEncoder();
+    // const gif = new GIF({ workers: 2, quality: 10, workerScript: '/path/to/gif.worker.js' });
     console.log("Conceptual: Initializing GIF Encoder");
-    // ---- End Conceptual GIF Encoder Initialization ----
 
     const offscreenCanvas = document.createElement('canvas');
-    // Note: renderGridToCanvas sets canvas width/height dynamically
-
     let currentSimGrid = JSON.parse(JSON.stringify(currentGridSource));
 
     try {
       setGifProgress('Capturing initial static frames...');
       renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
       for (let i = 0; i < GIF_STATIC_FRAME_COUNT; i++) {
-        // ---- Conceptual Add Frame ----
-        // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_STATIC_FRAME_DELAY_MS });
-        // Or for gif.js like: gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_STATIC_FRAME_DELAY_MS });
+        // gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_STATIC_FRAME_DELAY_MS });
         console.log(`Conceptual GIF: Added static frame ${i + 1} with delay ${GIF_STATIC_FRAME_DELAY_MS}`);
-        // ---- End Conceptual Add Frame ----
-        if (i < GIF_STATIC_FRAME_COUNT -1) await new Promise(r => setTimeout(r, 50)); // Simulate some work
+        if (i < GIF_STATIC_FRAME_COUNT -1) await new Promise(r => setTimeout(r, 50));
       }
 
       setGifProgress('Simulating Game of Life for GIF...');
-      let frameCount = 0; // Counts simulation frames after static ones
+      let frameCount = 0;
       let localStablePatternCount = 0;
       const gridPatternHistory = [];
 
       while (frameCount < (GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT)) {
         renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
-        // ---- Conceptual Add Frame ----
-        // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+        // gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_SIMULATION_FRAME_DELAY_MS });
         console.log(`Conceptual GIF: Added simulation frame ${frameCount + 1} with delay ${GIF_SIMULATION_FRAME_DELAY_MS}`);
-        // ---- End Conceptual Add Frame ----
 
         if (frameCount < (GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) -1 ) await new Promise(r => setTimeout(r, 50));
 
@@ -322,7 +310,7 @@ export default function Home() {
         frameCount++;
 
         const currentPatternForLoopCheck = gridToAsciiDisplay(currentSimGrid);
-        gridPatternHistory.push(currentPatternForLoopCheck); // Store pattern of new grid
+        gridPatternHistory.push(currentPatternForLoopCheck);
         if (gridPatternHistory.length > GIF_LOOP_DETECTION_HISTORY_SIZE) {
           gridPatternHistory.shift();
         }
@@ -330,7 +318,7 @@ export default function Home() {
         if (isEmpty(currentSimGrid)) {
           setGifProgress('Simulation empty. Finalizing GIF.');
           renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
-          // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+          // gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_SIMULATION_FRAME_DELAY_MS });
           console.log(`Conceptual GIF: Added final empty frame.`);
           break;
         }
@@ -339,13 +327,12 @@ export default function Home() {
           localStablePatternCount++;
           if (localStablePatternCount >= 5) {
             setGifProgress('Pattern stable. Capturing final loop and finalizing GIF.');
-            for (let stableFrame = 0; stableFrame < 3; stableFrame++) { // Add 3 more frames of stable pattern
+            for (let stableFrame = 0; stableFrame < 3; stableFrame++) {
                if (frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) break;
                renderGridToCanvas(currentSimGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
-               // Example: gif.writeFrame(offscreenCanvas.getContext('2d').getImageData(0,0,offscreenCanvas.width,offscreenCanvas.height).data, offscreenCanvas.width, offscreenCanvas.height, { delay: GIF_SIMULATION_FRAME_DELAY_MS });
+               // gif.addFrame(offscreenCanvas, { copy: true, delay: GIF_SIMULATION_FRAME_DELAY_MS });
                console.log(`Conceptual GIF: Added final stable frame ${stableFrame + 1}`);
                if (stableFrame < 2) await new Promise(r => setTimeout(r, 50));
-               // No getNextGeneration here, it's stable
                frameCount++;
             }
             break;
@@ -353,23 +340,17 @@ export default function Home() {
         } else {
           localStablePatternCount = 0;
           let oscillationDetected = false;
-          // Check for P2 to P5 oscillators. History stores currentSimGrid's pattern.
-          // We need to compare currentSimGrid's pattern with patterns P steps ago.
           for (let P = 2; P <= 5; P++) {
-            if (gridPatternHistory.length > P) { // Ensure enough history for this period
-              // The pattern added to history was currentSimGrid. We need to compare it with gridPatternHistory[length - 1 - P]
-              // Example: history [p0, p1, p2, p3, p4 (current)]
-              // For P=2, compare p4 with p2 (index length-1-2 = 5-1-2 = 2)
+            if (gridPatternHistory.length > P) {
               const pastPatternIndex = gridPatternHistory.length - 1 - P;
               if (pastPatternIndex >=0 && gridPatternHistory[pastPatternIndex] === currentPatternForLoopCheck) {
                 setGifProgress(`Oscillation (P=${P}) detected. Capturing ${GIF_OSCILLATOR_CYCLES_TO_CAPTURE} cycle(s)...`);
                 let tempLoopGrid = JSON.parse(JSON.stringify(currentSimGrid));
-                // We've already added currentSimGrid. Now add P-1 more for the first cycle, then (P * (GIF_OSCILLATOR_CYCLES_TO_CAPTURE -1)) for subsequent
                 for (let oscFrame = 0; oscFrame < (P * GIF_OSCILLATOR_CYCLES_TO_CAPTURE) -1 ; oscFrame++) {
                   if (frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) break;
                   tempLoopGrid = getNextGeneration(tempLoopGrid, NEWBORN_CELL_CHAR, getRandomNeonColor, INITIAL_NEON_PURPLE);
                   renderGridToCanvas(tempLoopGrid, offscreenCanvas, INITIAL_NEON_PURPLE);
-                  // Example: gif.writeFrame(...)
+                  // gif.addFrame(...)
                   console.log(`Conceptual GIF: Added oscillator frame ${oscFrame + 1}`);
                   await new Promise(r => setTimeout(r, 50));
                   frameCount++;
@@ -383,33 +364,20 @@ export default function Home() {
         }
       }
 
-      if(frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT) setGifProgress('Max simulation frames reached. Finalizing GIF.');
+      if(frameCount >= GIF_MAX_TOTAL_FRAMES - GIF_STATIC_FRAME_COUNT && isSimulating) setGifProgress('Max simulation frames reached. Finalizing GIF.');
       else if (!isSimulating && frameCount > 0) setGifProgress('Simulation ended. Finalizing GIF.');
 
 
       setGifProgress('Encoding GIF (simulated)...');
-      // ---- Conceptual GIF Finalization & Download ----
-      // Example: const buffer = await gif.finish(); // For gifenc
-      // Or for gif.js:
       // gif.on('finished', function(blob) {
-      //   console.log("Conceptual GIF: Encoding finished, blob size:", blob.size);
-      //   const url = URL.createObjectURL(blob);
-      //   const a = document.createElement('a');
-      //   a.href = url;
-      //   a.download = 'conways-game-of-life.gif';
-      //   document.body.appendChild(a);
-      //   a.click();
-      //   document.body.removeChild(a);
-      //   URL.revokeObjectURL(url);
+      //   saveAs(blob, 'conways-game-of-life.gif');
       //   setGifProgress('GIF Generated & Downloaded!');
-      //   // setIsGeneratingGif(false); // Moved to finally for non-event based
       // });
-      // gif.render(); // Starts rendering for gif.js
+      // gif.render();
 
       await new Promise(resolve => setTimeout(resolve, 1500));
       console.log("Conceptual GIF: Encoding complete. Triggering download.");
 
-      // Simulate download for browser environments
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const a = document.createElement('a');
         const simulatedBlob = new Blob(["Simulated GIF content placeholder"], {type : 'image/gif'});
@@ -421,7 +389,6 @@ export default function Home() {
         URL.revokeObjectURL(a.href);
       }
       setGifProgress('GIF Generated (simulated)!');
-      // ---- End Conceptual GIF Finalization & Download ----
 
     } catch (error) {
       console.error("Error generating GIF:", error);
@@ -429,7 +396,7 @@ export default function Home() {
     } finally {
       setTimeout(() => {
            setIsGeneratingGif(false);
-           // setGifProgress(''); // Cleared on next action or timeout is fine
+           // setGifProgress('');
       }, 3000);
     }
   };
@@ -480,71 +447,73 @@ export default function Home() {
           </button>
         </div>
 
-        {gameOfLifeGrid && (
+        {/* This div will now conditionally render based on art/grid presence */}
+        {(gameOfLifeGrid || asciiArt) && (
           <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{ fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0' }}>
-              {gameOfLifeGrid.map((row, rowIndex) => (
-                <div key={rowIndex}>
-                  {row.map((cell, colIndex) => {
-                    const cellColor = cell ? cell.color : 'inherit';
-                    return (
-                      <span key={colIndex} style={{ color: cellColor }}>
-                        {cell ? cell.char : DEAD_CELL_CHAR}
-                      </span>
-                    );
-                  })}
-                </div>
-              ))}
-            </pre>
-            <div className={styles.actionButtonsContainer}>
-              <button
-                onClick={handleDestroyClick}
-                className={styles.destroyButton}
-                disabled={isSimulating || !gameOfLifeGrid || isEmpty(gameOfLifeGrid) || isGeneratingGif}
-              >
-                {isSimulating ? 'Simulating...' : 'Destroy'}
-              </button>
-              <button
-                onClick={handleStartGifExport}
-                className={styles.exportGifButton}
-                disabled={isGeneratingGif || isSimulating || (!gameOfLifeGrid && !asciiArt) || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
-              >
-                {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
-              </button>
-            </div>
-            {isGeneratingGif && gifProgress && (
-              <div className={styles.gifProgressMessage} style={{ marginTop: '10px', textAlign: 'center', color: '#ccc' }}>
+            {gameOfLifeGrid ? (
+              <pre className={styles.asciiArt} style={{ fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0' }}>
+                {gameOfLifeGrid.map((row, rowIndex) => (
+                  <div key={rowIndex}>
+                    {row.map((cell, colIndex) => {
+                      const cellColor = cell ? cell.color : 'inherit';
+                      return (
+                        <span key={colIndex} style={{ color: cellColor }}>
+                          {cell ? cell.char : DEAD_CELL_CHAR}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ))}
+              </pre>
+            ) : (
+              asciiArt && <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0'}}>{asciiArt}</pre>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons and GIF progress are now outside and below asciiArtContainer, but only if art exists */}
+        {(gameOfLifeGrid || asciiArt) && (
+          <div
+            className={styles.actionButtonsContainer}
+            style={{
+              width: 'calc(100vw - 40px)',
+              maxWidth: '1200px',
+              margin: '10px auto', // Centers the button container
+            }}
+          >
+            <button
+              onClick={handleDestroyClick}
+              className={styles.destroyButton}
+              // Disable if simulating, generating GIF, or if there's no grid or the grid is empty
+              disabled={isSimulating || isGeneratingGif || !gameOfLifeGrid || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
+            >
+              {isSimulating ? 'Simulating...' : 'Destroy'}
+            </button>
+            <button
+              onClick={handleStartGifExport}
+              className={styles.exportGifButton}
+              // Disable if generating GIF, simulating, or no art/grid to export
+              disabled={isGeneratingGif || isSimulating || (!gameOfLifeGrid && !asciiArt) || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
+            >
+              {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
+            </button>
+          </div>
+        )}
+        {isGeneratingGif && gifProgress && (
+            <div
+                className={styles.gifProgressMessage}
+                style={{
+                    width: 'calc(100vw - 40px)',
+                    maxWidth: '1200px',
+                    margin: '10px auto', // Centers the progress message
+                    textAlign: 'center',
+                    color: '#ccc'
+                }}
+            >
                 {gifProgress}
-              </div>
-            )}
-          </div>
-        )}
-        {!gameOfLifeGrid && asciiArt && (
-           <div className={styles.asciiArtContainer}>
-            <pre className={styles.asciiArt} style={{color: INITIAL_NEON_PURPLE, fontSize: dynamicFontSize, whiteSpace: 'pre', lineHeight: '1.0'}}>{asciiArt}</pre>
-            <div className={styles.actionButtonsContainer}>
-              <button
-                onClick={handleDestroyClick}
-                className={styles.destroyButton}
-                disabled={!asciiArt || isSimulating || isGeneratingGif}
-              >
-                Destroy
-              </button>
-              <button
-                onClick={handleStartGifExport}
-                className={styles.exportGifButton}
-                disabled={isGeneratingGif || isSimulating || !asciiArt }
-              >
-                {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
-              </button>
             </div>
-            {isGeneratingGif && gifProgress && (
-                <div className={styles.gifProgressMessage} style={{ marginTop: '10px', textAlign: 'center', color: '#ccc' }}>
-                    {gifProgress}
-                </div>
-            )}
-          </div>
         )}
+
         <AsciiDonut />
 
         {showAboutModal && (

@@ -171,7 +171,8 @@ export default function Home() {
         const minFontSizePx = 16;
         const maxFontSizePx = 40;
 
-        const preferredFontSizeCalc = `calc(98vw / ${effectiveGridCharWidth})`;
+        // Adjusted to use 97vw to account for container padding and page gutters
+        const preferredFontSizeCalc = `calc(97vw / ${effectiveGridCharWidth})`;
 
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {

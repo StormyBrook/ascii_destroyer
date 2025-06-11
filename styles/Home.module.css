@@ -1,12 +1,12 @@
 .asciiArtContainer {
-  width: 100%; /* Take full width of the centered slot from parent flex */
-  max-width: 1200px; /* Cap for large screens */
+  width: calc(100vw - 20px); /* Wider container */
+  max-width: 1200px; /* Keep this cap */
   margin-top: 2rem;
   margin-bottom: 2rem;
   /* margin-left and margin-right are no longer 'auto' for centering this element itself,
      as parent .mainContentArea handles centering of its flex children. */
   overflow-x: hidden;
-  padding: 10px;
+  padding: 5px; /* Reduced padding */
   border-radius: 8px;
   background-color: #151A26;
 }
@@ -16,10 +16,11 @@
   color: #c084fc; /* Default color, will be overridden by spans */
   background-color: transparent; /* Make pre background transparent as container has bg */
   padding: 0; /* Padding is now on the container */
-  border-radius: 0.25rem; /* Can be removed if container has border-radius */
+  margin: 0; /* Added */
+  /* border-radius: 0.25rem; /* Removed as container has padding and radius */
   white-space: pre; /* Preserve spacing and line breaks */
   /* overflow-x: auto; /* Removed, container handles overflow */
-  text-align: center; /* Added this line */
+  text-align: center; /* Ensure this is present */
   line-height: 1.0; /* Adjusted for better fit with dynamic font sizes */
   width: 100%; /* Make pre take full width of container */
   box-sizing: border-box; /* Include padding and border in the element's total width and height */

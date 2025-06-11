@@ -1,12 +1,14 @@
 .asciiArtContainer {
-  width: calc(100vw - 20px);
-  max-width: 1200px;
-  margin: 2rem auto; /* Ensures horizontal centering, preserves vertical */
+  width: 100%; /* Take full width of the centered slot from parent flex */
+  max-width: 1200px; /* Cap for large screens */
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  /* margin-left and margin-right are no longer 'auto' for centering */
   overflow-x: hidden;
-  padding: 5px;
+  padding: 10px; /* Reverted to 10px */
   border-radius: 8px;
   background-color: #151A26;
-  box-sizing: border-box; /* Ensure box-sizing is present */
+  box-sizing: border-box;
 }
 
 .asciiArt {
@@ -48,9 +50,13 @@
 }
 
 .actionButtonsContainer {
-  width: calc(100vw - 20px); /* Match .asciiArtContainer */
-  max-width: 1200px;      /* Match .asciiArtContainer */
-  margin: 10px auto 0 auto; /* Top margin, auto L/R, 0 bottom */
+  width: 100%; /* Changed from calc */
+  max-width: 1200px; /* Keep max-width consistent with asciiArtContainer */
+  margin-top: 10px;
+  margin-bottom: 0; /* Explicitly setting all margins */
+  margin-left: 0;
+  margin-right: 0;
+  /* margin: 10px 0 0 0; /* Top margin, L/R/B are 0, centering by parent flex */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -63,7 +69,7 @@
 .controls {
   margin-bottom: 2rem;
   display: flex;
-  align-items: center;
+  align-items: center; /* This centers items in .controls like input and button */
 }
 
 .aboutModalOverlay {
@@ -113,7 +119,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  /* align-items: center; */ /* Removed */
+  align-items: center; /* Added back */
   padding: 2rem;
   min-height: 100vh;
 }

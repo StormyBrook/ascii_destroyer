@@ -59,13 +59,13 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Initial default, will be updated
+  const [dynamicFontSize, setDynamicFontSize] = useState('16px'); // Initial default, matching minFontSizePx
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [isGeneratingGif, setIsGeneratingGif] = useState(false);
   const [gifProgress, setGifProgress] = useState('');
 
-  const minFontSizePx = 6; // Define at component scope to be accessible for fallbacks
-  const maxFontSizePx = 40;
+  const minFontSizePx = 16; // Reverted to 16
+  const maxFontSizePx = 40; // Kept at 40
 
 
   const getRandomNeonColor = () => {
@@ -102,7 +102,7 @@ export default function Home() {
     if (!trimmedInput) {
       setAsciiArt('');
       setGameOfLifeGrid(null);
-      setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
+      setDynamicFontSize(`${minFontSizePx}px`);
       return;
     }
 
@@ -171,21 +171,18 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        // const minFontSizePx = 16; // Now defined at component scope
-        // const maxFontSizePx = 40; // Now defined at component scope
-
+        // minFontSizePx and maxFontSizePx are now from component scope
         const preferredFontSizeCalc = `calc(97vw / ${effectiveGridCharWidth})`;
-
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {
-        setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
+        setDynamicFontSize(`${minFontSizePx}px`);
       }
 
     } catch (error) {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
+      setDynamicFontSize(`${minFontSizePx}px`);
     }
   };
 

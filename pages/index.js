@@ -99,7 +99,7 @@ export default function Home() {
     if (!trimmedInput) {
       setAsciiArt('');
       setGameOfLifeGrid(null);
-      setDynamicFontSize('10px');
+      setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
       return;
     }
 
@@ -168,21 +168,21 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        const minFontSizePx = 10;
-        const maxFontSizePx = 32;
+        const minFontSizePx = 16;
+        const maxFontSizePx = 40;
 
         const preferredFontSizeCalc = `calc(98vw / ${effectiveGridCharWidth})`;
 
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {
-        setDynamicFontSize('12px'); // Adjusted default fallback slightly
+        setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
       }
 
     } catch (error) {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      setDynamicFontSize('12px'); // Adjusted default fallback slightly
+      setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
     }
   };
 

@@ -59,12 +59,12 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [dynamicFontSize, setDynamicFontSize] = useState('16px'); // Initial default, matching minFontSizePx
+  const [dynamicFontSize, setDynamicFontSize] = useState('7px'); // Initial default, matching new minFontSizePx
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [isGeneratingGif, setIsGeneratingGif] = useState(false);
   const [gifProgress, setGifProgress] = useState('');
 
-  const minFontSizePx = 16; // Reverted to 16
+  const minFontSizePx = 7; // Changed from 16 to 7
   const maxFontSizePx = 40; // Kept at 40
 
 
@@ -171,7 +171,6 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        // minFontSizePx and maxFontSizePx are now from component scope
         const preferredFontSizeCalc = `calc(97vw / ${effectiveGridCharWidth})`;
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {

@@ -59,10 +59,13 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [dynamicFontSize, setDynamicFontSize] = useState('10px');
+  const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Initial default, will be updated
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [isGeneratingGif, setIsGeneratingGif] = useState(false);
   const [gifProgress, setGifProgress] = useState('');
+
+  const minFontSizePx = 6; // Define at component scope to be accessible for fallbacks
+  const maxFontSizePx = 40;
 
 
   const getRandomNeonColor = () => {
@@ -99,7 +102,7 @@ export default function Home() {
     if (!trimmedInput) {
       setAsciiArt('');
       setGameOfLifeGrid(null);
-      setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
+      setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
       return;
     }
 
@@ -168,22 +171,21 @@ export default function Home() {
         const maxCharsForCalc = 120;
         const effectiveGridCharWidth = Math.max(minCharsForCalc, Math.min(gridCharWidth, maxCharsForCalc));
 
-        const minFontSizePx = 16;
-        const maxFontSizePx = 40;
+        // const minFontSizePx = 16; // Now defined at component scope
+        // const maxFontSizePx = 40; // Now defined at component scope
 
-        // Adjusted to use 97vw to account for container padding and page gutters
         const preferredFontSizeCalc = `calc(97vw / ${effectiveGridCharWidth})`;
 
         setDynamicFontSize(`clamp(${minFontSizePx}px, ${preferredFontSizeCalc}, ${maxFontSizePx}px)`);
       } else {
-        setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
+        setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
       }
 
     } catch (error) {
       console.error('Figlet/text processing error:', error);
       setAsciiArt('Error generating ASCII art.');
       setGameOfLifeGrid(null);
-      setDynamicFontSize(`${minFontSizePx}px`); // Use new min as default
+      setDynamicFontSize(`${minFontSizePx}px`); // Use defined min as default
     }
   };
 
@@ -370,11 +372,6 @@ export default function Home() {
 
 
       setGifProgress('Encoding GIF (simulated)...');
-      // gif.on('finished', function(blob) {
-      //   saveAs(blob, 'conways-game-of-life.gif');
-      //   setGifProgress('GIF Generated & Downloaded!');
-      // });
-      // gif.render();
 
       await new Promise(resolve => setTimeout(resolve, 1500));
       console.log("Conceptual GIF: Encoding complete. Triggering download.");
@@ -397,7 +394,6 @@ export default function Home() {
     } finally {
       setTimeout(() => {
            setIsGeneratingGif(false);
-           // setGifProgress('');
       }, 3000);
     }
   };
@@ -448,7 +444,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* This div will now conditionally render based on art/grid presence */}
         {(gameOfLifeGrid || asciiArt) && (
           <div className={styles.asciiArtContainer}>
             {gameOfLifeGrid ? (
@@ -472,20 +467,18 @@ export default function Home() {
           </div>
         )}
 
-        {/* Action buttons and GIF progress are now outside and below asciiArtContainer, but only if art exists */}
         {(gameOfLifeGrid || asciiArt) && (
           <div
             className={styles.actionButtonsContainer}
             style={{
               width: 'calc(100vw - 40px)',
               maxWidth: '1200px',
-              margin: '10px auto', // Centers the button container
+              margin: '10px auto 0 auto',
             }}
           >
             <button
               onClick={handleDestroyClick}
               className={styles.destroyButton}
-              // Disable if simulating, generating GIF, or if there's no grid or the grid is empty
               disabled={isSimulating || isGeneratingGif || !gameOfLifeGrid || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
             >
               {isSimulating ? 'Simulating...' : 'Destroy'}
@@ -493,7 +486,6 @@ export default function Home() {
             <button
               onClick={handleStartGifExport}
               className={styles.exportGifButton}
-              // Disable if generating GIF, simulating, or no art/grid to export
               disabled={isGeneratingGif || isSimulating || (!gameOfLifeGrid && !asciiArt) || (gameOfLifeGrid && isEmpty(gameOfLifeGrid))}
             >
               {isGeneratingGif ? 'Generating GIF...' : 'Export GIF'}
@@ -506,7 +498,7 @@ export default function Home() {
                 style={{
                     width: 'calc(100vw - 40px)',
                     maxWidth: '1200px',
-                    margin: '10px auto', // Centers the progress message
+                    margin: '10px auto',
                     textAlign: 'center',
                     color: '#ccc'
                 }}

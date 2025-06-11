@@ -1,29 +1,25 @@
 .asciiArtContainer {
-  width: calc(100vw - 20px); /* Wider container */
-  max-width: 1200px; /* Keep this cap */
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  /* margin-left and margin-right are no longer 'auto' for centering this element itself,
-     as parent .mainContentArea handles centering of its flex children. */
+  width: calc(100vw - 20px);
+  max-width: 1200px;
+  margin: 2rem auto; /* Ensures horizontal centering, preserves vertical */
   overflow-x: hidden;
-  padding: 5px; /* Reduced padding */
+  padding: 5px;
   border-radius: 8px;
   background-color: #151A26;
+  box-sizing: border-box; /* Ensure box-sizing is present */
 }
 
 .asciiArt {
   font-family: 'Courier New', Courier, monospace; /* Monospace font */
   color: #c084fc; /* Default color, will be overridden by spans */
   background-color: transparent; /* Make pre background transparent as container has bg */
-  padding: 0; /* Padding is now on the container */
-  margin: 0; /* Added */
-  /* border-radius: 0.25rem; /* Removed as container has padding and radius */
-  white-space: pre; /* Preserve spacing and line breaks */
-  /* overflow-x: auto; /* Removed, container handles overflow */
-  text-align: center; /* Ensure this is present */
-  line-height: 1.0; /* Adjusted for better fit with dynamic font sizes */
-  width: 100%; /* Make pre take full width of container */
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  padding: 0;
+  margin: 0;
+  white-space: pre;
+  text-align: center;
+  line-height: 1.0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .generateButton {
@@ -34,7 +30,6 @@
 .destroyButton {
   background-color: #c53030; /* Red */
   color: white;
-  /* margin-top: 0.5rem; /* Will be controlled by actionButtonsContainer */
 }
 
 .exportGifButton {
@@ -46,7 +41,6 @@
   cursor: pointer;
   position: absolute;
   right: 5px;
-  /* top: 50%; transform: translateY(-50%); might be needed if heights differ significantly */
 }
 .exportGifButton:disabled {
   background-color: #555;
@@ -54,23 +48,20 @@
 }
 
 .actionButtonsContainer {
-  /* Sizing and centering for the container itself */
-  width: calc(100vw - 40px); /* Match .asciiArtContainer's responsive width */
-  max-width: 1200px;      /* Match .asciiArtContainer's max width */
-  margin: 10px auto 0 auto; /* Top margin, auto for horizontal centering, 0 bottom */
-
-  /* Flexbox for aligning children */
+  width: calc(100vw - 20px); /* Match .asciiArtContainer */
+  max-width: 1200px;      /* Match .asciiArtContainer */
+  margin: 10px auto 0 auto; /* Top margin, auto L/R, 0 bottom */
   display: flex;
-  justify-content: center; /* Center the Destroy button */
+  justify-content: center;
   align-items: center;
-  position: relative; /* For absolute positioning of the GIF button */
-  padding: 0 5px; /* Small padding so buttons aren't flush with container edges */
+  position: relative;
+  padding: 0 5px;
   box-sizing: border-box;
-  min-height: 40px; /* Ensure container has some height for absolute positioning context */
+  min-height: 40px;
 }
 
 .controls {
-  margin-bottom: 2rem; /* Add space between controls and ASCII art */
+  margin-bottom: 2rem;
   display: flex;
   align-items: center;
 }
@@ -81,34 +72,33 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it's on top */
+  z-index: 1000;
 }
 
 .aboutModalContent {
-  background-color: #2d3748; /* Dark background, similar to existing elements */
+  background-color: #2d3748;
   color: #eee;
   padding: 20px;
   border-radius: 8px;
-  max-width: 600px; /* Max width for readability */
-  width: 90%; /* Responsive width */
+  max-width: 600px;
+  width: 90%;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
   text-align: left;
 }
 
 .aboutModalContent h2 {
   margin-top: 0;
-  color: '#c084fc'; /* Use a theme color, e.g., initial purple */
+  color: '#c084fc';
 }
 
 .modalCloseButton {
-  /* Style like other buttons or make distinct */
   display: block;
   margin-top: 20px;
-  margin-left: auto; /* Align to right */
+  margin-left: auto;
   padding: 8px 15px;
   background-color: '#c084fc';
   color: white;
@@ -119,16 +109,11 @@
 
 .mainContentArea {
   width: 100%;
-  /* max-width: 100%; /* Typically inherits from body/html if they are set correctly */
-  overflow-x: hidden; /* Prevent this specific container from creating horizontal scroll */
+  overflow-x: hidden;
   box-sizing: border-box;
-  /* Add any specific padding for main content area if desired, e.g. */
-  /* padding: 0 10px; /* Gutters for the main content, if asciiArtContainer's calc(100vw-40px) is relative to this */
-  /* For now, let's keep it simple and assume body/html handles overall viewport. */
-  /* Restoring properties from old global main style for consistency */
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* align-items: center; */ /* Removed */
   padding: 2rem;
   min-height: 100vh;
 }

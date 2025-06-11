@@ -59,12 +59,12 @@ export default function Home() {
   const [isSimulating, setIsSimulating] = useState(false)
   const simulationIntervalId = useRef(null)
   const [stableGenerationCount, setStableGenerationCount] = useState(0);
-  const [dynamicFontSize, setDynamicFontSize] = useState('7px'); // Initial default, matching new minFontSizePx
+  const [dynamicFontSize, setDynamicFontSize] = useState('10px'); // Initial default, matching new minFontSizePx
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [isGeneratingGif, setIsGeneratingGif] = useState(false);
   const [gifProgress, setGifProgress] = useState('');
 
-  const minFontSizePx = 7; // Changed from 16 to 7
+  const minFontSizePx = 10; // Changed from 7 back to 10
   const maxFontSizePx = 40; // Kept at 40
 
 
